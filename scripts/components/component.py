@@ -36,6 +36,9 @@ class Component(object):
 		self.ctrl_grp = trans.Transform(
 			name = '%s_ctrls_GRP' % self.name
 		)
+		self.setup_grp = trans.Transform(
+			name = '%s_setup_GRP' % self.name
+		)
 
 	def add_component_controler(self, control_data):
 		""" Adds controller data to the __component_controls_data dictionary
