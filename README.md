@@ -1,2 +1,2 @@
 # temp
-trying out git.  ACtools (temp name, it's only a rigging framework so far, not a tools suite)
+trying out git.  ACtools (temp name, not a tools suite)
