@@ -32,12 +32,18 @@ class Component(object):
 		"""Only here to be overwritten by inheriting classes"""
 		pass
 	
-	def setup_component_basics(self):
+	def create_component_base(self):
 		self.ctrl_grp = trans.Transform(
-			name = '%s_ctrls_GRP' % self.name
+			name = '%s_ctrls_GRP' % self.name,
+			parent = 'CONTROLS_GRP'
 		)
 		self.setup_grp = trans.Transform(
-			name = '%s_setup_GRP' % self.name
+			name = '%s_setup_GRP' % self.name,
+			parent = 'SETUP_GRP'
+		)
+		self.skeleton_grp = trans.Transform(
+			name = '%s_skeleton_GRP' % self.name,
+			parent = 'SKELETON_GRP'
 		)
 
 	def add_component_controler(self, control_data):
@@ -55,7 +61,7 @@ class Component(object):
 		self.component_ctrls_data[ctr_name] = control_data
 
 	def build_component(self):
-		self.setup_component_basics()
+		self.create_component_base()
 		build_controls(self.hierarchy_graph.root_node, comp_obj = self)
 			
 	def solve(self, template=False):
@@ -63,8 +69,6 @@ class Component(object):
 		Args:
 			template (bool) : It changes the logic deppending on when the 
 				component is being solved
-		Returns:
-			type: Description 
 		"""
 		pass
 	

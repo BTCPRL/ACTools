@@ -46,14 +46,15 @@ class Rig(object):
 	
 	def create_rig_base(self):
 		"""	Creates top groups for the rig
+		parent groups are hard coded as they should be the same for every rig
 		"""
-		self.asset_root = trans.Transform(name = '%s_ROOT' % self.asset_name)
-		self.asset_ctrl_grp = trans.Transform(name = 'CONTROLS_GRP',
-			parent = self.asset_root)
-		self.asset_setup_grp = trans.Transform(name = 'SETUP_GRP',
-			parent = self.asset_root)
-		self.asset_skel_grp = trans.Transform(name = 'SKELETON_GRP',
-			parent = self.asset_root)
+		self.root_grp = trans.Transform(name = '%s_ROOT' % self.asset_name)
+		self.ctrl_grp = trans.Transform(name = 'CONTROLS_GRP',
+			parent = self.root_grp)
+		self.setup_grp = trans.Transform(name = 'SETUP_GRP',
+			parent = self.root_grp)
+		self.skeleton_grp = trans.Transform(name = 'SKELETON_GRP',
+			parent = self.root_grp)
 	
 	def extract_template_data(self):
 		''' Creates a dictionary with each component's template data
