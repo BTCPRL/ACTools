@@ -13,5 +13,5 @@ center = 'M'
 positions_prefifx = ['L','M','R']
 
 #Validation lists
-supported_types = ['prop']
+supported_types = ['prop'] #too generic naming
 

@@ -41,8 +41,8 @@ class Rig(object):
 	def build_rig_template(self):
 		'''Builds each component's template
 		'''
-		for comp in self.components.keys():
-			self.components[comp].build_template()
+		for comp_name in self.components.keys():
+			self.components[comp_name].build_template()
 	
 	def create_rig_base(self):
 		"""	Creates top groups for the rig
@@ -60,8 +60,9 @@ class Rig(object):
 		''' Creates a dictionary with each component's template data
 		'''
 		template_data = {}
-		for c_name in self.components.keys():
-			template_data[c_name] = self.components[c_name].get_template_data()
+		for comp_name in self.components.keys():
+			template_data[comp_name] = 
+				self.components[comp_name].get_template_data()
 		print template_data
 		
 	def build_rig(self):

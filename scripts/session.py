@@ -90,7 +90,7 @@ class Session(object):
 
 	def create_build_file(self, build_path, asset_type):
 		'''Creates a copy of asset_build.py  in the dev folder
-		Aargs:
+		args:
 			build_path (str) : Path to build file in dev folder
 			asset_type (str) : Rig type name
 		'''
