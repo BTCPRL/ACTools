@@ -1,5 +1,5 @@
 from ACtools.scripts.core import controls
-from ACtools.scripts.core import dependency_graph as dg
+from ACtools.scripts.core import dependency_graph
 from ACtools.scripts.core import transforms as trans
 
 class Component(object):
@@ -14,7 +14,7 @@ class Component(object):
 			raise Exception('Please provide name and side')
 
 		#Empty attributes
-		self.hierarchy_graph = dg.Dependency_graph(component_name = self.name)
+		self.hierarchy_graph = dependency_graph.Dependency_graph(component_name = self.name)
 		self.component_ctrls_data = {}
 		self.ctrls = {}
 		self.transforms = []
@@ -29,32 +29,32 @@ class Component(object):
 		return self.name
 
 	def add_ctrls_data(self):
-		"""Only here to be overwritten by inheriting classes"""
+		"""Needs(?) to be overwritten by inheriting classes"""
 		pass
 	
 	def create_component_base(self):
-		self.ctrl_grp = trans.Transform(
+		self.ctrl_grp = transforms.Transform(
 			name = '%s_ctrls_GRP' % self.name,
 			parent = 'CONTROLS_GRP'
 		)
-		self.setup_grp = trans.Transform(
+		self.setup_grp = transforms.Transform(
 			name = '%s_setup_GRP' % self.name,
 			parent = 'SETUP_GRP'
 		)
-		self.skeleton_grp = trans.Transform(
+		self.skeleton_grp = transforms.Transform(
 			name = '%s_skeleton_GRP' % self.name,
 			parent = 'SKELETON_GRP'
 		)
 
 	def add_component_controler(self, control_data):
-		""" Adds controller data to the __component_controls_data dictionary
-		It also adds the controller to the hierarchy graph
+		""" Adds controler data to the __component_controls_data dictionary
+		It also adds the controler to the hierarchy graph
 		Args:
-			control_data (dict) : Necessary data to add a controller
+			control_data (dict) : Necessary data to add a controler
 		"""
 		
 		ctr_name =  control_data['name']
-		ctr_parent = control_data['parent']
+		ctr_parent = control_data['parent'] 
 
 		self.hierarchy_graph.add_node(ctr_name, ctr_parent)
 
@@ -64,7 +64,7 @@ class Component(object):
 		self.create_component_base()
 		build_controls(self.hierarchy_graph.root_node, comp_obj = self)
 			
-	def solve(self, template=False):
+	def solve(self, template=False): 
 		"""Adds the logic to the component
 		Args:
 			template (bool) : It changes the logic deppending on when the 
@@ -73,23 +73,23 @@ class Component(object):
 		pass
 	
 	def get_template_data(self):
-		'''Queries transform data for controllers
+		'''Queries transform data for controlers
 		Transform data is in local space
 		Returns:
-			dict: keys are controller names. Entries are dictionaries
-					containing transform data for each controller
+			dict: keys are controler names. Entries are dictionaries
+					containing transform data for each controler
 		'''
 		component_data = {}
 		for ctr_name in self.ctrls.keys():
 			ctr_obj = self.ctrls[ctr_name]
 			ctr_data = {
-				'transform':ctr_obj.get_transform(relative = True)
+				'transform': ctr_obj.get_transform(relative = True)
 			}
 			component_data[ctr_name] = ctr_data
 		
 		return component_data
 		
-@dg.travel_graph
+@dependency_graph.travel_graph
 def build_controls(graph_node, comp_obj = None):
 	data = comp_obj.component_ctrls_data[str(graph_node)]
 

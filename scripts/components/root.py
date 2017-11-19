@@ -5,7 +5,7 @@ reload(component)
 class Root(component.Component):
 	"""
 	Root component.
-	It carries the top groups information. Creates top level controller
+	It carries the top groups information. Creates top level controler
 	Different from other components in the sense that it has to be created first
 	"""
 	def __init__(self, common_args, component_args={}):
