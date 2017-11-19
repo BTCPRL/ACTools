@@ -16,13 +16,6 @@ class Root(component.Component):
 		else:
 			raise Exception('Please provide an asset_name')
 
-		#empty attributes
-
-		self.asset_root = None
-		self.asset_ctrl_grp = None
-		self.asset_setup_grp = None
-		self.asset_skel_grp = None
-
 	def add_ctrls_data(self):
 		self.add_component_controler(
 			control_data = {
@@ -34,27 +27,10 @@ class Root(component.Component):
 		)
 
 	def create_template_grps(self):
-		"""	
-		Creates top groups for the rig
+		"""	Creates top group where template controls will be parented under
 		"""
-		self.asset_root = trans.Transform(
-				name = '%s_ROOT' % self.asset_name
-			)
-		# self.asset_ctrl_grp = trans.Transform(
-		# 		name = 'CONTROLS_GRP',
-		# 		parent = self.asset_root
-		# 	)
-		# self.asset_setup_grp = trans.Transform(
-		# 		name = 'SETUP_GRP',
-		# 		parent = self.asset_root
-		# 	)
-		# self.asset_skel_grp = trans.Transform(
-		# 		name = 'SKELETON_GRP',
-		# 		parent = self.asset_root
-		# 	)
 		self.template_grp = trans.Transform(
-				name = 'TEMPLATE_GRP',
-				parent = self.asset_root
+				name = 'TEMPLATE_GRP'
 			)
 		pass
 

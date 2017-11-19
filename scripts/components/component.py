@@ -46,23 +46,23 @@ class Component(object):
 			parent = 'SKELETON_GRP'
 		)
 
-	def add_component_controler(self, control_data):
+	def add_component_controler(self, ctr_data):
 		""" Adds controler data to the __component_controls_data dictionary
 		It also adds the controler to the hierarchy graph
 		Args:
-			control_data (dict) : Necessary data to add a controler
+			ctr_data (dict) : Necessary data to add a controler
 		"""
 		
-		ctr_name =  control_data['name']
-		ctr_parent = control_data['parent'] 
+		ctr_name =  ctr_data['name']
+		ctr_parent = ctr_data['parent'] 
 
 		self.hierarchy_graph.add_node(ctr_name, ctr_parent)
 
-		self.component_ctrls_data[ctr_name] = control_data
+		self.component_ctrls_data[ctr_name] = ctr_data
 
 	def build_component(self):
 		self.create_component_base()
-		build_controls(self.hierarchy_graph.root_node, comp_obj = self)
+		__build_controls(self.hierarchy_graph.root_node, comp_obj = self)
 			
 	def solve(self, template=False): 
 		"""Adds the logic to the component
@@ -90,7 +90,7 @@ class Component(object):
 		return component_data
 		
 @dependency_graph.travel_graph
-def build_controls(graph_node, comp_obj = None):
+def __build_controls(graph_node, comp_obj = None):
 	data = comp_obj.component_ctrls_data[str(graph_node)]
 
 	new_ctr = controls.Control(

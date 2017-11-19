@@ -6,7 +6,7 @@ import pymel.core as pm
 import maya.cmds as cmds
 
 #Global data import
-from ACtools.scripts import global_data as g_data
+from ACtools.data import global_data as g_data
 
 #Modules improt
 from ACtools.scripts.core import transforms as trans
@@ -39,7 +39,7 @@ class Control(trans.Transform):
 		""" Creates curve shape and parents it under ctr transform
 		"""
 		#Loads shapes dictionary
-		shape_file_read = open(g_data.control_shapes_file,'r')
+		shape_file_read = open(g_data.ctrls_shapes_file,'r')
 		shapes_dictionary = json.load(shape_file_read)
 		
 		#Args validation
@@ -92,16 +92,16 @@ def get_curve_data(shape):
 
 	return curve_data
 
-def export_ctrl_shape(control_name):
+def export_ctrl_shape(ctr_name):
 
-	name = control_name.replace('_CTR','')
+	name = ctr_name.replace('_CTR','')
 	entries = {}
 
 	data_dict = {
 		name:entries
 	}
 	
-	for x,shape in enumerate(cmds.listRelatives(control_name, shapes = 1)):
+	for x,shape in enumerate(cmds.listRelatives(ctr_name, shapes = 1)):
 		shape_data = get_curve_data(shape)
 		entries['shape%i' % x] = {
 			'degree':shape_data[0],
@@ -111,23 +111,23 @@ def export_ctrl_shape(control_name):
 	return data_dict
 
 
-def add_to_controls_shape(control_name):
+def add_to_controls_shape(ctr_name):
 	""" Adds control to control shape file
 	"""
 	#get data
 	# data = get_curve_data(control)
-	control_dictionary = export_ctrl_shape(control_name)
+	ctr_dictionary = export_ctrl_shape(ctr_name)
 
 	#Open Json file and Merge dictionaries
-	shape_file_read = open(g_data.control_shapes_file,'r')
+	shape_file_read = open(g_data.ctrls_shapes_file,'r')
 	current_shapes = json.load(shape_file_read)
-	current_shapes.update(control_dictionary)
+	current_shapes.update(ctr_dictionary)
 
 	j_data = current_shapes.copy()
 	shape_file_read.close()
 	
 	#Save new json file
-	shape_file_write = open(g_data.control_shapes_file,'w')
+	shape_file_write = open(g_data.ctrls_shapes_file,'w')
 
 	json.dump(
 		j_data, 
