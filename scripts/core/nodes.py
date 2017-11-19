@@ -22,7 +22,7 @@ class Node(object):
 		
 		#Supported types dictionary
 		#Format: {name: [suffix, maya type]}
-		supported_types = {
+		supported_node_types = {
 			#Utility nodes
 			'remap':['_RMV', 'remapValue',],
 			'clamp':['_CLP', 'clamp'],
@@ -37,10 +37,10 @@ class Node(object):
 		}
 
 		#Extract data from dictionary if possible
-		if node_type in supported_types.keys():
-			suffix = supported_types[node_type][0]
+		if node_type in supported_node_types.keys():
+			suffix = supported_node_types[node_type][0]
 			node_name = '%s%s' % (node_name, suffix)
-			maya_type = supported_types[node_type][1]
+			maya_type = supported_node_types[node_type][1]
 			
 		else:
 			maya_type = node_type

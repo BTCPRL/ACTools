@@ -52,9 +52,9 @@ class Session(object):
 		#Validation of arguments
 		if not (type(asset_name) is str or type (asset_type) is str):
 			raise Exception("Asset name and type should be a string")
-		elif asset_type not in g_data.supported_types:
-			raise Exception('%s is not an accepted asset type '\
-							'supported types are: %s' % (asset_type, supported_types))
+		elif asset_type not in g_data.supported_asset_types:
+			raise Exception('%s is not an supported asset type supported types'\
+			' are: %s' % (asset_type, g_data.supported_asset_types))
 		else:
 			#Setting the asset data
 			self.asset_name = asset_name
