@@ -1,6 +1,8 @@
 import pymel.core as pm 
 import maya.cmds as cmds
 
+from ACtools.data import global_data as g_data
+
 class Node(object):
 	"""
 	Nodes class.
@@ -17,6 +19,9 @@ class Node(object):
 
 		node_name = name
 		if side:
+			if side not in g_data.positions_prefifx:
+				raise Exception('side has to be one of the following: '\
+					'%s' % g_data.positions_prefifx )
 			if not name.split('_')[0] == side:
 				node_name = '%s_%s' % (side, name)
 		

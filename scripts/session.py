@@ -3,7 +3,7 @@ import os
 import shutil
 
 #Global data import
-from ACtools.scripts import global_data as g_data
+from ACtools.data import global_data as g_data
 
 class Session(object):
 	"""

@@ -33,7 +33,7 @@ class Component(object):
 		pass
 	
 	def create_component_base(self):
-		self.ctrl_grp = transforms.Transform(
+		self.ctrls_grp = transforms.Transform(
 			name = '%s_ctrls_GRP' % self.name,
 			parent = 'CONTROLS_GRP'
 		)
@@ -50,8 +50,25 @@ class Component(object):
 		""" Adds controler data to the __component_controls_data dictionary
 		It also adds the controler to the hierarchy graph
 		Args:
-			ctr_data (dict) : Necessary data to add a controler
+			ctr_data (dict) : Data to add a controler
+				Data required:
+					name (string) : controler description
+					side (string) : one option from g_data.positions_prefifx
+					shape (string) : name of which shape to use
+				
+				Optional data:
+					parent (string) :  parent node. Default is self.ctrls_grp
+					size (double) : Scale value for controler's shape. 
+									Default is 1
+					zero (bool) : Add a group above the controller. 
+									Default is True
+					space (bool) : Add a second group above the controller. 
+									Default is True	
 		"""
+		
+		#Validation
+		if ['name','side','shape'] not in ctr_data.keys():
+			raise Exception('Please provide name, shape and side for controler')
 		
 		ctr_name =  ctr_data['name']
 		ctr_parent = ctr_data['parent'] 
@@ -91,16 +108,32 @@ class Component(object):
 		
 @dependency_graph.travel_graph
 def __build_controls(graph_node, comp_obj = None):
-	data = comp_obj.component_ctrls_data[str(graph_node)]
+	""" Using the component data, builds a controler
+	Private function, can't be accesed outside of component.py 
+	Uses the @travel_graph decorator to create all the controlers of the given
+	component 
+	"""
 
+	data = comp_obj.component_ctrls_data[str(graph_node)]
+	#Data provided by default at 'add_component_controler' method
+	ctr_name = data['name']
+	ctr_side = data['side']
+	ctr_shape = data['shape']
+	#Optional data
+	ctr_size = data['size'] if 'size' in data.keys() else 1
+	ctr_parent = data['parent'] if 'parent' in data.keys() else self.ctrls_grp
+	ctr_zero = data['zero'] if 'zero' in data.keys() else True
+	ctr_space = data['space'] if 'space' in data.keys() else True
+
+	#Creating the controler
 	new_ctr = controls.Control(
-		name = data['name'],
-		side = data['side'],
-		shape = data['shape'],
-		# size = data['size'],
-		parent = data['parent'],
-		# add_zero = data['add_zero'],
-		# add_space = data['add_space']
+		name = ctr_name,
+		side = ctr_side,
+		shape = ctr_shape,
+		size = ctr_size,
+		parent = ctr_parent,
+		add_zero = ctr_add_zero,
+		add_space = ctr_add_space
 	)
 
 	comp_obj.ctrls[graph_node] = new_ctr

@@ -18,7 +18,7 @@ reload(trans)
 class Control(trans.Transform):
 	"""docstring for Control"""
 	def __init__(self, name, shape, size=1, side= g_data.center, add_zero=True, 
-		add_space=True, parent=None):
+		add_space=True, parent=None, position=[0,0,0,0,0,0]):
 
 		#Empty attributes for clarity of mind
 		self.shape = []
@@ -31,7 +31,7 @@ class Control(trans.Transform):
 
 		super(Control, self).__init__(name = ctr_name, side = side, 
 			add_zero = add_zero, add_space = add_space, parent = parent, 
-			node_type = 'control')
+			position = position, node_type = 'control')
 
 		self.create_ctr_shape(shape)
 

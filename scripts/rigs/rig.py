@@ -31,7 +31,8 @@ class Rig(object):
 		#Dynamically imports and reload [component_type].py
 		component_module = imp.load_source(
 			'%s_module' % component_type,
-			os.path.join('D:/Dev/ACtools/scripts/components','%s.py' % component_type)
+			os.path.join('D:/Dev/ACtools/scripts/components','%s.py'\
+															   % component_type)
 		)
 		component_class = getattr(component_module, component_type.capitalize())
 		component_obj = component_class(common_args, component_args)
@@ -61,8 +62,8 @@ class Rig(object):
 		'''
 		template_data = {}
 		for comp_name in self.components.keys():
-			template_data[comp_name] = 
-				self.components[comp_name].get_template_data()
+			template_data[comp_name] = \
+								self.components[comp_name].get_template_data()
 		print template_data
 		
 	def build_rig(self):

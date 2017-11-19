@@ -7,15 +7,18 @@ reload(nodes)
 
 class Transform(nodes.Node):
 	"""docstring for Transform"""
-	def __init__(self, name, side=None, add_zero=False, add_space=False,
-		parent = None, node_type='transform'):
+	def __init__(self, name, side, add_zero=False, add_space=False,
+		parent=None, position=[0,0,0,0,0,0], node_type='transform'):
 		
 		#Args validation
 		suffix = name.split('_')[-1]
 		if len(name.split('_')) < 2 or suffix.islower():
 			raise Exception('Transfroms need a suffix in the name.'\
 				' Suffix should be all upper case')
-			
+		if len(position) > 6:
+			raise Exception('Position has to be of the form [tx,ty,tz] or '\
+				'[tx,ty,tz,rx,ry,rz]')
+
 		super(Transform, self).__init__(node_type = node_type, name = name,
 			side = side)
 		
@@ -44,6 +47,10 @@ class Transform(nodes.Node):
 
 		if parent:
 			self.top_node.set_parent(parent)
+		
+		self.top_node.set_position(position[:3], relative = True)
+		if len(position) > 3:
+			self.top_node.set_rotation(position[3:], relative = True)
 
 	def set_parent(self, parent):
 		if not parent:
