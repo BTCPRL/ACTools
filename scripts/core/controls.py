@@ -17,11 +17,11 @@ reload(trans)
 
 class Control(trans.Transform):
 	"""docstring for Control"""
-	def __init__(self, name, shape, size=1, side= g_data.center, add_zero=True, 
-		add_space=True, parent=None, position=[0,0,0,0,0,0]):
+	def __init__(self, name, shape, color=None, size=1, side= g_data.center, 
+		add_zero=True, add_space=True, parent=None, position=[0,0,0,0,0,0]):
 
 		#Empty attributes for clarity of mind
-		self.shape = []
+		self.shapes = []
 		self.size = size
 		ctr_name = name 
 		
@@ -34,6 +34,10 @@ class Control(trans.Transform):
 			position = position, node_type = 'control')
 
 		self.create_ctr_shape(shape)
+		if color:
+			self.set_color(color = color)
+		else:
+			self.set_color(color = g_data.sides_color[side])
 
 	def create_ctr_shape(self, shape):
 		""" Creates curve shape and parents it under ctr transform
@@ -69,7 +73,30 @@ class Control(trans.Transform):
 			pm.delete(temp_curve)
 			
 			#Store shape in object attribute
-			self.shape.append(curve_shape)
+			self.shapes.append(curve_shape)
+	
+	def set_color(self, color):
+		"""Description
+		Args:
+			color (str) : if passed as a string, it can be one of the following
+				options: 'blue', 'red', 'yellow', 'green', 'pink'. 
+				Prefixes available for the options: 'light_' and 'dark_'
+				Examples: 'dark_red', 'light_green', 'pink'
+			color (int) : if passed as an int, it represents the index value of
+				the Color attribute in the Drawing override tab for Maya
+		"""
+		
+		if type(color) is int:
+			color_index = color
+		elif type(color) is str:
+			color_index = g_data.colors_dict[color]
+		else:
+			raise Exception('Color should be an integer or a string')
+		
+		for shape in self.shapes:
+			cmds.setAttr('%s.overrideEnabled' % shape, 1)
+			cmds.setAttr('%s.overrideColor' % shape, color_index)
+	
 	
 def get_curve_data(shape):
 	"""Gets shape's degree and point information
