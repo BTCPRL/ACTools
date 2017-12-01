@@ -4,7 +4,7 @@ import shutil
 
 #Global data import
 from ACtools.data import global_data as g_data
-
+reload(g_data)
 class Session(object):
 	"""
 	Session class.
@@ -20,64 +20,109 @@ class Session(object):
 		'components': os.path.join(os.path.dirname(__file__),'components')
 	}
 
-	dev_folders = ['template','weights','wip','geo','scenes']
-	def __init__(self, project_name, asset_name=None, asset_type = None):
+	dev_folders = ['template','weights','wip','scenes']
+	existing_projects = os.listdir(g_data.productions_root)
+	def __init__(self, user, project_name = None, asset_name=None, 
+			asset_type = None):
+		"""
+		Args:
+			param1 (type) : Description
+		"""
 		
-		
-		
-		self.project_name = project_name
-
-		#Creates project folder if needed
-		self.project_path = os.path.join(g_data.sys_root, project_name)
-		create_folder(self.project_path)
-
-		#Asset related attributes
-		self.asset_bool = False
-		self.asset_name = asset_name
+		self.user_name = user
+		self.user_path = os.path.join(g_data.users_root, self.user_name)
 		self.paths = dict(Session.fixed_paths)
-
-		#List of all assets under current project
-		self.project_assets = os.listdir(self.project_path)
 		
-
+		#Empty attributes for clarity of mind
+		self.project_name = None
+		self.project_path = None
+		self.project_set = False
+		#Asset related attributes
+		self.asset_name = None
+		
+		if project_name:
+			self.set_project()
 		#If asset_name is provided, set the data
-		if asset_name != None and asset_type != None:
+		if asset_name  and asset_type:
 			self.set_asset(asset_name, asset_type)
 	
+	def set_project(self, project_name):
+
+		if not project_name in Session.existing_projects:
+			raise Exception('%s is not an existing project, unable to set data'\
+			'. Please use create_project() to add a new project')
+		
+		self.project_name = project_name
+		self.project_path = os.path.join(g_data.productions_root, project_name)
+		
+		#List of all assets under current project
+		self.project_assets = os.listdir(self.project_path)
+
+		self.project_set = True
+	
+	def create_set_project(self, project_name):
+		self.create_project(project_name)
+		self.set_project(project_name)
+
+	def create_project(self, project_name):
+		"""
+		Args:
+			param1 (type) : Description
+		Returns:
+			type: Description 
+		"""
+		
+		project_path = os.path.join(g_data.productions_root, project_name)
+		if os.path.isdir(project_path):
+			print '##Warning: %s already exists as a project,'\
+			' no folders created' % project_name
+		else:
+			create_folder(project_path)
+
+		self.create_directory_tree(project_path, g_data.project_folders)
+
+	def create_directory_tree(self,base_path, folders_dictionary):
+		for folder in folders_dictionary:
+			folder_path = os.path.join(base_path, folder)
+			create_folder(folder_path)
+			if folders_dictionary[folder]:
+				self.create_directory_tree(folder_path, 
+					folders_dictionary[folder])
+		
 
 	def set_asset(self, asset_name, asset_type):
+		"""Creates all the required folders for an asset build
 		"""
-		Creates all the required folders for an asset build, sets the data
-		"""
+		if not self.project_set :
+			raise Exception('Project data not found. Please set project before'\
+			' setting the asset')
+
 		#Validation of arguments
 		if not (type(asset_name) is str or type (asset_type) is str):
 			raise Exception("Asset name and type should be a string")
 		elif asset_type not in g_data.supported_asset_types:
-			raise Exception('%s is not an supported asset type supported types'\
-			' are: %s' % (asset_type, g_data.supported_asset_types))
+			raise Exception('%s is not an supported asset type. Supported '\
+			'types are: %s' % (asset_type, g_data.supported_asset_types))
 		else:
 			#Setting the asset data
 			self.asset_name = asset_name
-			asset_path = os.path.join(self.project_path, asset_name)
+			asset_path = os.path.join(self.user_path, asset_name)
+			self.paths['asset'] = asset_path
 
 			#Check for asset folder
 			if not self.asset_name in self.project_assets:
-				os.mkdir(asset_path)
+				create_folder(asset_path)
 				self.project_assets.append(self.asset_name)
-			
-			self.paths['asset'] = asset_path
-			self.asset_bool = True
-			
-			#Check for needed folders
-			for f in Session.dev_folders:
+				self.create_directory_tree(asset_path, g_data.asset_dev_folders)
+
+			#Add asset dev folders to paths
+			for f in g_data.asset_dev_folders:
 				f_path = os.path.join(self.paths['asset'], f)
-				create_folder(f_path)
-				self.paths[f]	 = f_path
+				self.paths[f] = f_path
 			
 			#Check for asset_build.py
 			build_path = os.path.join(asset_path, 
 				'%s_build.py' % self.asset_name)
-
 			if not os.path.isfile(build_path):
 				self.create_build_file(build_path, asset_type)
 		

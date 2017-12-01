@@ -3,20 +3,20 @@ Global variables for ACtools
 """
 
 #System
-sys_root='D:/Productions'
+productions_root = 'D:/Productions/Projects'
+users_root = 'D:/Productions/Users'
 ctrls_shapes_file = 'D:/Dev/ACtools/data/controls_shape.json'
-
 
 #Sides for prefixes
 left = 'L'
 right = 'R'
 center = 'M'
-
+#Sides collection for loops
 sides = [left, right]
 positions_prefifx = [left, center, right]
 
 #Validation lists
-supported_asset_types = ['prop'
+supported_asset_types = ['prop']
 
 #Colors for controllers
 #Dictionary of sides with it's color assignation
@@ -42,4 +42,38 @@ colors_dict = {
     'dark_purple': 31,
     'dark_red': 4,
     'dark_yellow': 25
+}
+
+
+#Project folder structure
+# Dictionaries structure: Folder name(key) : another folder dictionary (value)
+## use None as a value for a directory with no sub directories
+project_folders = {
+    'Final':{
+        'Assets':{
+            'Props': None,
+            'Characters': None,
+            'Sets':None
+        },
+        'Shots': None
+    },
+    'Checkins':{
+        'Assets':{
+            'Props': None,
+            'Characters': None,
+            'Sets':None
+        },
+        'Shots': None
+    }
+}
+
+#Asset folder structure
+# asset_steps_folders = {
+#     '':''
+# }
+asset_dev_folders = {
+    'template': None,
+    'weights': None,
+    'wip': None,
+    'scenes': None,
 }
