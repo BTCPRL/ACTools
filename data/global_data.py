@@ -16,7 +16,7 @@ sides = [left, right]
 positions_prefifx = [left, center, right]
 
 #Validation lists
-supported_asset_types = ['prop']
+supported_asset_types = ['prop', 'character','set']
 
 #Colors for controllers
 #Dictionary of sides with it's color assignation
@@ -48,21 +48,19 @@ colors_dict = {
 #Project folder structure
 # Dictionaries structure: Folder name(key) : another folder dictionary (value)
 ## use None as a value for a directory with no sub directories
+
+#Creating assets sub dictionary based on supported assets.
+assets_dict = {}
+for asset in supported_asset_types:
+    assets_dict[asset.capitalize()] = None
+
 project_folders = {
     'Final':{
-        'Assets':{
-            'Props': None,
-            'Characters': None,
-            'Sets':None
-        },
+        'Assets':assets_dict,
         'Shots': None
     },
     'Checkins':{
-        'Assets':{
-            'Props': None,
-            'Characters': None,
-            'Sets':None
-        },
+        'Assets':assets_dict,
         'Shots': None
     }
 }
