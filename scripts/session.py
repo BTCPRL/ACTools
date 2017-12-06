@@ -2,11 +2,8 @@
 import os
 import shutil
 
-
-###Move this to helper module
-#Maya imports
-import pymel.core as pm
-import maya.cmds as cmds
+#Module imports
+from ACtools.scripts.maya_core import maya_files
 
 #Global data import
 from ACtools.data import global_data as g_data
@@ -35,7 +32,7 @@ class Session(object):
 		self.user_name = user
 		self.user_path = os.path.join(g_data.users_root, self.user_name)
 		self.paths = dict(Session.fixed_paths)
-		
+
 		#Empty attributes for clarity of mind
 		self.project_name = None
 		self.project_path = None
@@ -51,7 +48,7 @@ class Session(object):
 		#If asset_name is provided, set the data
 		if asset_name  and asset_type:
 			self.set_asset(asset_name, asset_type)
-	
+
 	def set_project(self, project_name):
 
 		if not project_name in Session.existing_projects:
@@ -107,7 +104,6 @@ class Session(object):
 			if folders_dictionary[folder]:
 				self.create_directory_tree(folder_path, 
 					folders_dictionary[folder])
-		
 
 	def set_asset(self, asset_name, asset_type):
 		"""Creates all the required folders for an asset build
@@ -123,6 +119,9 @@ class Session(object):
 			raise Exception('%s is not an supported asset type. Supported '\
 			'types are: %s' % (asset_type, g_data.supported_asset_types))
 		else:
+			#Set geo path
+			self.paths['geo'] = os.path.join(self.paths['final'], asset_type, 
+				asset_name, '%s_geo.ma' % asset_name)
 			#Setting the asset data
 			self.asset_name = asset_name
 			self.asset_type = asset_type
@@ -168,7 +167,6 @@ class Session(object):
 		#Copies the asset development folders into the new version checkin
 		shutil.copytree(self.paths['asset'], version_path)
 
-
 	def publish_asset(self):
 		"""Description
 		"""
@@ -181,8 +179,10 @@ class Session(object):
 			self.asset_name)
 		create_folder(final_path)
 
-		archive_path = os.path.join(self.paths['final'], self.asset_type,
-			self.asset_name, 'Archive')
+		rig_path = os.path.join(final_path, 'Rig')
+		create_folder(rig_path)			
+		
+		archive_path = os.path.join(rig_path,'Archive')
 		create_folder(archive_path)
 
 		#Get the next version number			
@@ -191,11 +191,10 @@ class Session(object):
 		version_path = os.path.join(archive_path, str(new_version).zfill(3))
 		create_folder(version_path)
 
-		for folder_path in [final_path, version_path]:
-			file_path = os.path.join(folder_path,'%s.ma' % self.asset_name )
-			pm.saveAs(file_path, f = True)
+		for folder_path in [rig_path, version_path]:
+			file_path = os.path.join(folder_path,'%s_rig.ma' % self.asset_name)
+			maya_files.save_file_as(file_path)
 		
-	
 	def open_build(self):
 		open_in_os(self.paths['build'])
 
@@ -213,7 +212,6 @@ class Session(object):
 		temp_path = build_path.replace('build','temp')
 
 		shutil.copy(source_build, build_path) #Copy build
-
 		shutil.copy(source_build, temp_path) #Temp file to replace
 
 		asset_build = open(build_path, 'w+')
@@ -236,7 +234,6 @@ class Session(object):
 		temp_build.close()
 		os.remove(temp_path)
 
-		
 		self.paths['build'] = build_path
 
 def open_in_os(path):

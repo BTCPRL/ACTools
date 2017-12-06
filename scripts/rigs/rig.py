@@ -4,22 +4,22 @@ import os
 
 class Rig(object):
 	"""docstring for Rig"""
-	def __init__(self, asset_name):
+	def __init__(self):
 
 		self.components = {}
 		print "Rig basic stuff will happen"
 
-		self.register( common_args = {
-			'name': 'root',
-			'side': 'M',
-			'type' : 'root'
-			},
-			component_args = {
-			'asset_name': asset_name.capitalize()
-			}
-		)
-		self.root = self.components['M_root']
-		self.root_settings = None
+		# self.register( common_args = {
+		# 	'name': 'root',
+		# 	'side': 'M',
+		# 	'type' : 'root'
+		# 	},
+		# 	# component_args = {
+		# 	# 'asset_name': asset_name.capitalize()
+		# 	# }
+		# )
+		# self.root = self.components['M_root']
+		# self.root_settings = None
 
 
 	def register(self, common_args, component_args={}):

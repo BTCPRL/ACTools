@@ -4,7 +4,8 @@ asset_token build
 import pymel.core as pm 
 import maya.cmds as cmds
 
-from ACtools import nodes, transforms, type_token
+from ACtools.scripts.maya_core import nodes, transforms, 
+from ACtools.scripts.rigs import type_token
 
 reload(type_token)
 class Asset(type_token.Type_token):

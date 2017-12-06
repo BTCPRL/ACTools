@@ -1,4 +1,5 @@
-from ACtools import rig
+from ACtools.scripts.rigs import rig
+reload(rig)
 class Prop(rig.Rig):
 	"""docstring for Prop"""
 	def __init__(self):
