@@ -17,16 +17,23 @@ class Builder(object):
 		
 		self.rig_base = False
 		#Dynamically imports and reload [asset_name]_build.py
-		asset_module = imp.load_source(
+		self.asset_module = imp.load_source(
 			'imported_asset_module',
 			os.path.join(session_obj.paths['asset'],self.build_file)
 		)
 
+	def initialize_rig(self):
+		""" Creates an instance of the rig object
+		"""
 		#Creates a Rig object from the imported module
-		self.rig = asset_module.Asset()
+		self.rig = self.asset_module.Asset(
+			builder = self,
+			asset_name = self.session_obj.asset_name
+		)
 
 	def import_geo(self):
-		"""Description
+		"""Imports the asset geo to the scene. If there's a rig base, it parents
+		the imported geo under the GEO group
 		"""
 		maya_files.import_file(self.session_obj.paths['geo'])
 
@@ -40,5 +47,4 @@ class Builder(object):
 	
 	def build_rig(self):
 		"""Runs the base level rig build and calls the asset level rig build"""
-
 		self.rig.build_rig()

@@ -33,15 +33,15 @@ class Component(object):
 		pass
 	
 	def create_component_base(self):
-		self.ctrls_grp = transforms.Transform(
+		self.ctrls_grp = trans.Transform(
 			name = '%s_ctrls_GRP' % self.name,
 			parent = 'CONTROLS_GRP'
 		)
-		self.setup_grp = transforms.Transform(
+		self.setup_grp = trans.Transform(
 			name = '%s_setup_GRP' % self.name,
 			parent = 'SETUP_GRP'
 		)
-		self.skeleton_grp = transforms.Transform(
+		self.skeleton_grp = trans.Transform(
 			name = '%s_skeleton_GRP' % self.name,
 			parent = 'SKELETON_GRP'
 		)
@@ -67,8 +67,9 @@ class Component(object):
 		"""
 		
 		#Validation
-		if ['name','side','shape'] not in ctr_data.keys():
-			raise Exception('Please provide name, shape and side for controler')
+		for needed_data in ['name','side','shape']:
+			if not needed_data in ctr_data.keys():
+				raise Exception('Please provide %s for controler' % needed_data)
 		
 		ctr_name =  ctr_data['name']
 		ctr_parent = ctr_data['parent'] 
@@ -79,7 +80,7 @@ class Component(object):
 
 	def build_component(self):
 		self.create_component_base()
-		__build_controls(self.hierarchy_graph.root_node, comp_obj = self)
+		build_controls(self.hierarchy_graph.root_node, comp_obj = self)
 			
 	def solve(self, template=False): 
 		"""Adds the logic to the component
@@ -107,7 +108,7 @@ class Component(object):
 		return component_data
 		
 @dependency_graph.travel_graph
-def __build_controls(graph_node, comp_obj = None):
+def build_controls(graph_node, comp_obj = None):
 	""" Using the component data, builds a controler
 	Private function, can't be accesed outside of component.py 
 	Uses the @travel_graph decorator to create all the controlers of the given
@@ -122,8 +123,8 @@ def __build_controls(graph_node, comp_obj = None):
 	#Optional data
 	ctr_size = data['size'] if 'size' in data.keys() else 1
 	ctr_parent = data['parent'] if 'parent' in data.keys() else self.ctrls_grp
-	ctr_zero = data['zero'] if 'zero' in data.keys() else True
-	ctr_space = data['space'] if 'space' in data.keys() else True
+	ctr_add_zero = data['zero'] if 'zero' in data.keys() else True
+	ctr_add_space = data['space'] if 'space' in data.keys() else True
 
 	#Creating the controler
 	new_ctr = controls.Control(

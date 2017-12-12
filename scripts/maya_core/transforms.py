@@ -7,7 +7,7 @@ reload(nodes)
 
 class Transform(nodes.Node):
 	"""docstring for Transform"""
-	def __init__(self, name, side, add_zero=False, add_space=False,
+	def __init__(self, name, side=None, add_zero=False, add_space=False,
 		parent=None, position=[0,0,0,0,0,0], node_type='transform'):
 		
 		#Args validation

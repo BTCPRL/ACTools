@@ -1,6 +1,6 @@
 from CARF.scripts.components import component
-from CARF.scripts.core import controls
-from CARF.scripts.core import transforms as trans
+from CARF.scripts.maya_core import controls
+from CARF.scripts.maya_core import transforms as trans
 reload(component)
 class Root(component.Component):
 	"""
@@ -18,7 +18,7 @@ class Root(component.Component):
 
 	def add_ctrls_data(self):
 		self.add_component_controler(
-			control_data = {
+			ctr_data = {
 				'name':'root',
 				'side':'M',
 				'shape':'root',

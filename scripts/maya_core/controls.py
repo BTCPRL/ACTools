@@ -9,7 +9,7 @@ import maya.cmds as cmds
 from CARF.data import global_data as g_data
 
 #Modules improt
-from CARF.scripts.core import transforms as trans
+from CARF.scripts.maya_core import transforms as trans
 
 reload(g_data)
 reload(trans)
