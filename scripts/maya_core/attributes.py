@@ -17,7 +17,6 @@ class Attribute(object):
 		self.keyable = keyable
 		self.lock = False
 
-		
 		#Adds it to the node
 		args = {
 			'hidden':self.hidden,
