@@ -1,7 +1,7 @@
 import pymel.core as pm 
 import maya.cmds as cmds
 
-from ACtools.data import global_data as g_data
+from CARF.data import global_data as g_data
 
 class Node(object):
 	"""

@@ -1,11 +1,11 @@
 """
-Global variables for ACtools
+Global variables for CARF
 """
 
 #System
 productions_root = 'D:/Productions/Projects'
 users_root = 'D:/Productions/Users'
-ctrls_shapes_file = 'D:/Dev/ACtools/data/controls_shape.json'
+ctrls_shapes_file = 'D:/Dev/CARF/data/controls_shape.json'
 
 #Sides for prefixes
 left = 'L'

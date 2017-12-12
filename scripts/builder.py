@@ -1,8 +1,8 @@
 import os
 import sys
 import imp 
-from ACtools.scripts import session
-from ACtools.scripts.maya_core import maya_files
+from CARF.scripts import session
+from CARF.scripts.maya_core import maya_files
 reload(maya_files)
 class Builder(object):
 	"""

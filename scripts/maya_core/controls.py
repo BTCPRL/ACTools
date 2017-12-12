@@ -6,10 +6,10 @@ import pymel.core as pm
 import maya.cmds as cmds
 
 #Global data import
-from ACtools.data import global_data as g_data
+from CARF.data import global_data as g_data
 
 #Modules improt
-from ACtools.scripts.core import transforms as trans
+from CARF.scripts.core import transforms as trans
 
 reload(g_data)
 reload(trans)

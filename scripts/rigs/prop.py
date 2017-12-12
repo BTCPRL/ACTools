@@ -1,4 +1,4 @@
-from ACtools.scripts.rigs import rig
+from CARF.scripts.rigs import rig
 reload(rig)
 class Prop(rig.Rig):
 	"""docstring for Prop"""

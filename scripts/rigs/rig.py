@@ -31,7 +31,7 @@ class Rig(object):
 		#Dynamically imports and reload [component_type].py
 		component_module = imp.load_source(
 			'%s_module' % component_type,
-			os.path.join('D:/Dev/ACtools/scripts/components','%s.py'\
+			os.path.join('D:/Dev/CARF/scripts/components','%s.py'\
 															   % component_type)
 		)
 		component_class = getattr(component_module, component_type.capitalize())

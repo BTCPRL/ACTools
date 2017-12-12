@@ -3,10 +3,10 @@ import os
 import shutil
 
 #Module imports
-from ACtools.scripts.maya_core import maya_files
+from CARF.scripts.maya_core import maya_files
 
 #Global data import
-from ACtools.data import global_data as g_data
+from CARF.data import global_data as g_data
 reload(g_data)
 class Session(object):
 	"""

@@ -1,6 +1,6 @@
-from ACtools.scripts.components import component
-from ACtools.scripts.core import controls
-from ACtools.scripts.core import transforms as trans
+from CARF.scripts.components import component
+from CARF.scripts.core import controls
+from CARF.scripts.core import transforms as trans
 reload(component)
 class Root(component.Component):
 	"""

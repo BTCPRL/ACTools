@@ -1,6 +1,6 @@
-from ACtools.scripts.maya_core import controls
-from ACtools.scripts.maya_core import dependency_graph
-from ACtools.scripts.maya_core import transforms as trans
+from CARF.scripts.maya_core import controls
+from CARF.scripts.maya_core import dependency_graph
+from CARF.scripts.maya_core import transforms as trans
 
 class Component(object):
 	"""docstring for Component"""
