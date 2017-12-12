@@ -30,7 +30,7 @@ class Builder(object):
 		"""
 		maya_files.import_file(self.session_obj.paths['geo'])
 
-		if rig_base:
+		if self.rig_base:
 			#Import into rig base, once we have a rig base...
 			pass
 		

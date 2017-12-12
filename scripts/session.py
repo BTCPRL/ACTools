@@ -121,7 +121,7 @@ class Session(object):
 		else:
 			#Set geo path
 			self.paths['geo'] = os.path.join(self.paths['final'], asset_type, 
-				asset_name, '%s_geo.ma' % asset_name)
+				asset_name, 'Geo', '%s_geo.ma' % asset_name)
 			#Setting the asset data
 			self.asset_name = asset_name
 			self.asset_type = asset_type
@@ -142,7 +142,7 @@ class Session(object):
 				'%s_build.py' % self.asset_name)
 			if not os.path.isfile(build_path):
 				self.create_build_file(build_path, asset_type)
-
+			self.paths['build'] = build_path
 			self.asset_set = True
 		
 	def check_in_asset(self):
