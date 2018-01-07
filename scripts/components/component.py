@@ -106,6 +106,11 @@ class Component(object):
 			component_data[ctr_name] = ctr_data
 		
 		return component_data
+
+	def finalize_component(self):
+		"""TODO
+		"""
+		pass
 		
 @dependency_graph.travel_graph
 def build_controls(graph_node, comp_obj = None):
