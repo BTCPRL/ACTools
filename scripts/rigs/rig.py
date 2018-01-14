@@ -2,7 +2,6 @@ import imp
 import os
 from CARF.scripts.maya_core import transforms as trans
 
-reload(trans)
 class Rig(object):
 	"""docstring for Rig"""
 	def __init__(self, builder, asset_name):
@@ -37,15 +36,15 @@ class Rig(object):
 		# self.root_settings = None
 
 	def register(self, common_args, component_args={}):
-		"""
-		Creates and adds a component object to the rig
+		""" Intizializes and stores component object to the rig.
 		"""
 		component_obj = self.initialize_component(common_args, component_args)
 		self.components[component_obj.name] = component_obj
 
 	def initialize_component(self, common_args, component_args={}):
-		""" Creates a component object. For more information on common_args and
-		component_args, check component.py
+		""" Initializes a component object. 
+		This will not add the component to the self.components dictionary
+		Check component.py for information on common_args and component_args
 		Args:
 			common_args (dict) : Keyword arguments common to all components
 			component_args (dict) : Keyword arguments specific to each type
@@ -85,7 +84,7 @@ class Rig(object):
 			grp_var = trans.Transform(name = name, parent = self.root_grp)
 
 	
-	def rig_basics(self):
+	def build_base(self):
 		"""Wrapper for building base groups and root component
 		"""
 		self.build_base_grps()
@@ -106,6 +105,7 @@ class Rig(object):
 								self.components[comp_name].get_template_data()
 		print template_data
 		
-	def build_rig(self):
-		print "Rig basic stuff will be built"
-		
+	def build(self):
+		print "All components will be built"
+		for comp_name in self.components.keys():
+			self.components[comp_name].build_component()

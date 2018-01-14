@@ -11,10 +11,6 @@ from CARF.data import global_data as g_data
 #Modules improt
 from CARF.scripts.maya_core import transforms as trans
 
-reload(g_data)
-reload(trans)
-
-
 class Control(trans.Transform):
 	"""docstring for Control"""
 	def __init__(self, name, shape, color=None, size=1, side= g_data.center, 

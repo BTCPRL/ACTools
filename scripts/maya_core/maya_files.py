@@ -5,8 +5,11 @@ calls.
 import pymel.core as pm
 import maya.cmds as cmds
 
+def new_file():
+    return pm.newFile(force = True)
+
 def import_file(file_path):
-    return pm.importFile(file_path)
+    return pm.importFile(file_path, returnNewNodes = True)
 
 def save_file(file_path = None):
     return pm.saveFile()
