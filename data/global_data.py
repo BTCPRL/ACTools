@@ -16,7 +16,7 @@ sides = [left, right]
 positions_prefifx = [left, center, right]
 
 #Validation lists
-supported_asset_types = ['prop', 'character','set']
+supported_rig_types = ['prop', 'layout', 'character','set'] #TODO Get this from directory?
 
 #Colors for controllers
 #Dictionary of sides with it's color assignation

@@ -11,5 +11,9 @@ class Prop(rig.Rig):
 	def build_template(self):
 		super(Prop, self).build_template()
 
-	def build_rig(self):
-		super(Prop, self).build_rig()
+	def build(self):
+		super(Prop, self).build()
+		self.root.constrain(
+            target = self.builder.geo_grp,
+            constraint_type = 'parent'
+        )

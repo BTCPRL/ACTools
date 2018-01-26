@@ -22,6 +22,7 @@ class Builder(object):
 		self.build_file = '%s_build.py' % session_obj.asset_name
 		
 		self.rig_base = False
+		self.geo_grp = None
 		#Dynamically imports and reload [asset_name]_build.py
 		self.asset_module = imp.load_source(
 			'imported_asset_module',
@@ -67,7 +68,7 @@ class Builder(object):
 			
 			#Setting the parent
 			top_grp.setParent('GEO_GRP') 
-		
+			self.geo_grp = top_grp
 		return new_nodes
 		
 
@@ -102,3 +103,5 @@ class Builder(object):
 		self.import_geo() #Imports the geo and parents it under the rig
 
 		self.assemble_rig() #Builds all the components for the rig
+
+		print '###  YUP  ###'

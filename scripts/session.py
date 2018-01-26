@@ -23,7 +23,7 @@ class Session(object):
 	dev_folders = ['template','weights','wip','scenes']
 	existing_projects = os.listdir(g_data.productions_root)
 	def __init__(self, user, project_name = None, asset_name=None, 
-			asset_type = None):
+			asset_type = None, rig_type = None):
 		"""
 		Args:
 			param1 (type) : Description
@@ -46,8 +46,8 @@ class Session(object):
 		if project_name:
 			self.set_project()
 		#If asset_name is provided, set the data
-		if asset_name  and asset_type:
-			self.set_asset(asset_name, asset_type)
+		if asset_name and asset_type and rig_type:
+			self.set_asset(asset_name, asset_type, rig_type)
 
 	def set_project(self, project_name):
 
@@ -105,7 +105,7 @@ class Session(object):
 				self.create_directory_tree(folder_path, 
 					folders_dictionary[folder])
 
-	def set_asset(self, asset_name, asset_type):
+	def set_asset(self, asset_name, asset_type, rig_type):
 		"""Creates all the required folders for an asset build
 		"""
 		if not self.project_set :
@@ -115,9 +115,9 @@ class Session(object):
 		#Validation of arguments
 		if not (type(asset_name) is str or type (asset_type) is str):
 			raise Exception("Asset name and type should be a string")
-		elif asset_type not in g_data.supported_asset_types:
-			raise Exception('%s is not an supported asset type. Supported '\
-			'types are: %s' % (asset_type, g_data.supported_asset_types))
+		elif rig_type not in g_data.supported_rig_types:
+			raise Exception('%s is not an supported rig type. Supported '\
+			'types are: %s' % (rig_type, g_data.supported_rig_types))
 		else:
 			#Set geo path
 			self.paths['geo'] = os.path.join(self.paths['final'], asset_type, 
@@ -141,7 +141,7 @@ class Session(object):
 			build_path = os.path.join(asset_path, 
 				'%s_build.py' % self.asset_name)
 			if not os.path.isfile(build_path):
-				self.create_build_file(build_path, asset_type)
+				self.create_build_file(build_path, rig_type)
 			self.paths['build'] = build_path
 			self.asset_set = True
 		

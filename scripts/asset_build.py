@@ -4,7 +4,7 @@ asset_token build
 import pymel.core as pm 
 import maya.cmds as cmds
 
-from CARF.scripts.maya_core import nodes, transforms, 
+from CARF.scripts.maya_core import nodes, transforms
 from CARF.scripts.rigs import type_token
 
 reload(type_token)

@@ -83,7 +83,8 @@ class Transform(nodes.Node):
 				mo = mo,
 				**kwargs
 			)
-			t.constraints.append(new_constraint)
+			# t.constraints.append(new_constraint)
+			#TODO: figure out if you are getting your transform class or a regular maya transform
 
 		return new_constraint
 		
