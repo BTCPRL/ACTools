@@ -51,7 +51,7 @@ colors_dict = {
 
 #Creating assets sub dictionary based on supported assets.
 assets_dict = {}
-for asset in supported_asset_types:
+for asset in supported_rig_types:
     assets_dict[asset.capitalize()] = None
 
 project_folders = {

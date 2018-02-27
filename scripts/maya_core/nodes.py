@@ -2,6 +2,7 @@ import pymel.core as pm
 import maya.cmds as cmds
 
 from CARF.data import global_data as g_data
+from CARF.scripts.maya_core import attributes
 
 class Node(object):
 	"""
@@ -29,6 +30,7 @@ class Node(object):
 		#Format: {name: [suffix, maya type]}
 		supported_node_types = {
 			#Utility nodes
+			'condition':['COND', 'condition'], 
 			'remap':['_RMV', 'remapValue',],
 			'clamp':['_CLP', 'clamp'],
 			'multiply':['_MUL', 'multiplyDivide'],
@@ -72,27 +74,12 @@ class Node(object):
 
 	"""Attribute methods"""
 
-	def addAttr(self, attr_name, attr_type,default_value=None, min_val=None, 
-		max_val=None, hidden=False, keyable=True, **Kwargs):
+	def add_attr(self, attr_name, attr_type, default_value=0, min_value=0, 
+		max_value=1, hidden=False, keyable=True, **Kwargs):
 		""" Creates a new attribute """
 
-		args = {
-			'hidden':hidden,
-			'keyable':keyable,
-		}
-		if default_value != None:
-			args['dv'] = default_value
-
-		if min_val != None:
-			args['min'] = min_val
-			args['hasMaxValue'] = True
-
-		if max_val != None:
-			args['max'] = max_val
-			args['hasMinValue'] = True
-
-		self.pm_node.addAttr(attr_name, at = attr_type, **args)
-		pass
+		attributes._add(self.pm_node, attr_name, attr_type, default_value, 
+								min_value, max_value, hidden, keyable, **Kwargs)
 
 	def getAttr(self, attr_name):
 		"""Returns attribute value"""

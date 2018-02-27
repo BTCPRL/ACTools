@@ -195,4 +195,42 @@ def _create_maya_constrain(driver, driven, constraint_type, mo=1, **kwargs):
 								% (constraint_type, driver, driven,mo, args_str)
 	exec(command_str)
 
+	if '{}.interpType'.format(new_constraint) in new_constraint.listAttr():
+		new_constraint.setAttr('interpType', 2)
+	
 	return new_constraint
+
+
+
+def create_parent_spaces(node, spaces_name, spaces_nodes, controller, default_spaces=[0,1], default_blend=0):
+	
+	#Create constrain from spaces to node
+	node.constrain_to(spaces_nodes, constraint_type = 'parent', mo = 1)
+	#Add 2 (spaceA and spaceB) dropdown attributes in the controller plus one blend float attribute
+	for i,s in enumerate(['A','B']):
+		controller.add_attr(
+			name = 'space{}'.format(s),
+			attr_type = 'enum',
+			enum_list = spaces_name,
+			dv = default_spaces[i]
+		)
+	controller.add_attr(
+		name = 'blend',
+		attr_type = 'float',
+		dv = default_blend
+	)
+	#for each space:
+	for i, space in enumerate(spaces_name):
+	#	create 2 condition nodes (one for each dropdown attr)
+		cond_a = nodes.Node(
+			name = '{}_A'.format(space), 
+			node_type = 'condition',
+		)
+
+	#	make an inverse connection from blend attr to color if true of first condition
+
+	#	make a direct connection from blend attr to color if true of second condition
+
+	#	add the result of each condition
+
+	#	plug that sum into the corresponding weight alias of the constrain
