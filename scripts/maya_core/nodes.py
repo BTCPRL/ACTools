@@ -58,8 +58,6 @@ class Node(object):
 		node = pm.createNode(maya_type, n = self.name)
 		self.set_pm_node(node)
 
-		
-
 	def __repr__(self):
 		return self.name
 	
