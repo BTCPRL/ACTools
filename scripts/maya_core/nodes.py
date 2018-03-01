@@ -30,9 +30,10 @@ class Node(object):
 		#Format: {name: [suffix, maya type]}
 		supported_node_types = {
 			#Utility nodes
-			'condition':['COND', 'condition'], 
+			'condition':['_COND', 'condition'], 
 			'remap':['_RMV', 'remapValue',],
 			'clamp':['_CLP', 'clamp'],
+			'reverse':['_REV','reverse'],
 			'multiply':['_MUL', 'multiplyDivide'],
 			'divide':['_DIV', 'multiplyDivide'],
 			'add':['_ADD', 'plusMinusAverage'],
@@ -74,8 +75,8 @@ class Node(object):
 
 	"""Attribute methods"""
 
-	def add_attr(self, attr_name, attr_type, default_value=0, min_value=0, 
-		max_value=1, hidden=False, keyable=True, **Kwargs):
+	def add_attr(self, attr_name, attr_type='slider', default_value=0, 
+		min_value=None, max_value=None, hidden=False, keyable=True, **Kwargs):
 		""" Creates a new attribute """
 
 		attributes._add(self.pm_node, attr_name, attr_type, default_value, 
