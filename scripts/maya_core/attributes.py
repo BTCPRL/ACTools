@@ -90,7 +90,7 @@ def _unlock(node, attr_name, show=True, **Kwargs):
 	node.setAttr(attr_name, keyable = True, lock = False, cb = show)
 
 #TODO should this be done in nodes.py?
-def _link(node, attr_name, target_node, f=1):
+def _link(node, attr_name, target_node, f=False):
 	""" Connects the same attribute between two ndoes
 	Assumes the same attribute is present in both nodes
 	Args :  node : node that will drive the attr's value
@@ -99,14 +99,14 @@ def _link(node, attr_name, target_node, f=1):
 	"""
 	_connect(node, attr_name, target_node, attr_name, force=f)
 
-def _connect(node, attr_name, target_node, target_attr, f=1):
+def _connect(node, attr_name, target_node, target_attr, f=False):
 	"""Makes a direct connection from attr_name to target_attr
 	Args : 
 		
 	"""
 	node.connectAttr(attr_name, '{}.{}'.format(target_node, target_attr), f =f)
 
-def _connectReverse(node, attr_name, target_node, target_attr, f=1):
+def _connectReverse(node, attr_name, target_node, target_attr, f=False):
 	""" Makes a reverse connection between attributes
 	Works like _connect but it runs the source attribute through a reverse node
 	"""
@@ -118,7 +118,7 @@ def _connectReverse(node, attr_name, target_node, target_attr, f=1):
 		rev_node = pm.PyNode(rev_name)
 	_connect(rev_node, 'outputX', target_node, target_attr, force = f)
 
-def _connectNegative(node, attr_name, target_node, target_attr, f=1):
+def _connectNegative(node, attr_name, target_node, target_attr, f=False):
 	""" Connect the negative value of an attribute into another
 	Works like _connect but multiplies the attr_name value by -1
 	"""

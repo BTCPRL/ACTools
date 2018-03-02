@@ -71,50 +71,46 @@ class Node(object):
 		"""Returns a new node of the same type, with a new name"""
 		return Node(self.node_type, new_name)
 
-	"""Attribute methods"""
-
-	def add_attr(self, attr_name, attr_type='slider', default_value=0, 
+	"""
+	Attribute methods
+		For more documentation and Args explanation, check attributes.py
+	"""
+	def attr_add(self, attr_name, attr_type='slider', default_value=0, 
 		min_value=None, max_value=None, hidden=False, keyable=True, **Kwargs):
 		""" Creates a new attribute """
-
 		attributes._add(self.pm_node, attr_name, attr_type, default_value, 
 								min_value, max_value, hidden, keyable, **Kwargs)
 
-	def getAttr(self, attr_name):
-		"""Returns attribute value"""
-		return self.pm_node.getAttr(attr_name)
-
-	def connectAttr(self, attr_name, target, force = False):
-		"""Connects given attribute with target"""
-		self.pm_node.connectAttr(attr_name, target, f = force)
+	def attr_get(self, attr_name, **Kwargs):
+		"""Returns the attribute value"""
+		return attributes._get(self.pm_node, attr_name, Kwargs)
 		
-	def attr_set(self, attr_name, value):
-		"""Sets the specified attribute to the given value"""
-		self.pm_node.setAttr(self.name, value)
+	def attr_set(self, attr_name, value, **Kwargs):
+		"""Sets the specified value in the given attribute"""
+		attributes._set(self.pm_node, attr_name, value, Kwargs)
 	
-	def attr_lock(self, attr_name, show=False):
+	def attr_lock(self, attr_name, hide=True, **Kwargs):
 		"""Locks the attribute"""
-		self.attr_state(
-			attr_name = attr_name, 
-			keyable = False,
-			lock = True, 
-			show = show)
+		attributes._lock(self.pm_node, attr_name, hide, Kwargs)
 		
 	def attr_unlock(self, attr_name, show=True):
 		"""Unlocks the attribute"""
-		self.attr_state(
-			attr_name = attr_name, 
-			keyable = True, 
-			lock = False, 
-			show = show)
+		attributes._lock(self.pm_node, attr_name, show, Kwargs)
+	
+	def attr_connect(self, attr_name, target, target_attr, f=False):
+		"""Connects given attribute with target"""
+		attributes._connect(self.pm_node, attr_name, target, target_attr, f = f)
 
-	def attr_state(self, attr_name, keyable, lock, show):
-		"""Changes the state of an attribute"""
-		self.pm_node.setAttr(
-			attr_name, 
-			keyable = keyable, 
-			lock = lock, 
-			cb = show
-		)
+	def attr_link(self, attr_name, target, f=False):
+		"""Links same attribute betwen targets"""
+		attributes._link(self.pm_node, attr_name, target, f = f)
+	
+	def attr_connectReverse(self, attr_name, target, target_attr, f=False):
+		"""Connects given attribute with target via reverse node"""
+		attributes._connectReverse(self.pm_node, attr_name, target, target_attr,
+																		  f = f)
 
-
+	def attr_connectNegative(self, attr_name, target, target_attr, f=False):
+		"""Connects the negative value of the given attribute with target"""
+		attributes._connectNegative(self.pm_node, attr_name, target, 
+															 target_attr, f = f)
