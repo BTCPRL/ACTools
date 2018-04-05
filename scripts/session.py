@@ -120,8 +120,8 @@ class Session(object):
 			'types are: %s' % (rig_type, g_data.supported_rig_types))
 		else:
 			#Set geo path
-			self.paths['geo'] = os.path.join(self.paths['final'], asset_type, 
-				asset_name, 'Geo', '%s_geo.ma' % asset_name)
+			self.paths['geo'] = os.path.join(self.paths['final'], 
+				asset_type, asset_name, 'Geo', '%s.ma' % asset_name)
 			#Setting the asset data
 			self.asset_name = asset_name
 			self.asset_type = asset_type
