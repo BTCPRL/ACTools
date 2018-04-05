@@ -16,6 +16,7 @@ class Node(object):
 		self.added_attributes = {}
 		self.pm_node = None
 		self.name = None
+		self.side = side
 		self.node_type = node_type
 
 		node_name = name
@@ -34,20 +35,31 @@ class Node(object):
 			'remap':['_RMV', 'remapValue',],
 			'clamp':['_CLP', 'clamp'],
 			'reverse':['_REV','reverse'],
+			#Basic Math
 			'multiply':['_MUL', 'multiplyDivide'],
 			'divide':['_DIV', 'multiplyDivide'],
 			'add':['_ADD', 'plusMinusAverage'],
 			'substract':['_SUB', 'plusMinusAverage'],
+			#Matrices
+			'decomposeMatrix':['_DMX','decomposeMatrix'],
+			#Curve nodes
+			'nearestPointOnCurve':['_NPC','nearestPointOnCurve'],
+			'pointOnCurveInfo':['_POC','pointOnCurveInfo'],
 			#Dag nodes
 			'transform':['','transform'], #transforms get the suffix from name
-			'control':['', 'transform'],
+			'control':['', 'transform'], #Used by controls module
 			'joint':['_JNT','joint'],
 		}
-
+		#Auto detect nodes
+		auto_detect_nodes = {
+			'divide':2,
+			'substract':2
+		}
 		#Extract data from dictionary if possible
 		if node_type in supported_node_types.keys():
 			suffix = supported_node_types[node_type][0]
-			node_name = '%s%s' % (node_name, suffix)
+			if not suffix in node_name:
+				node_name = '{}{}'.format(node_name, suffix)
 			maya_type = supported_node_types[node_type][1]
 			
 		else:
@@ -56,11 +68,18 @@ class Node(object):
 		#Create node
 		self.name = node_name
 		node = pm.createNode(maya_type, n = self.name)
+
+		if maya_type in auto_detect_nodes:
+			attributes._set(node, 'operation', auto_detect_nodes[maya_type])
+
 		self.set_pm_node(node)
 
-	def __repr__(self):
-		return self.name
+	# def __repr__(self):
+	# 	return self.name
 	
+	def __str__(self):
+		return self.name
+
 	def set_pm_node(self, node):
 		if type (node) is list:
 			self.pm_node = node[0]
@@ -87,15 +106,15 @@ class Node(object):
 		
 	def attr_set(self, attr_name, value, **Kwargs):
 		"""Sets the specified value in the given attribute"""
-		attributes._set(self.pm_node, attr_name, value, Kwargs)
+		attributes._set(self.pm_node, attr_name, value, **Kwargs)
 	
-	def attr_lock(self, attr_name, hide=True, **Kwargs):
+	def attr_lock(self, attr_name, hide=True):
 		"""Locks the attribute"""
-		attributes._lock(self.pm_node, attr_name, hide, Kwargs)
+		attributes._lock(self.pm_node, attr_name, hide)
 		
 	def attr_unlock(self, attr_name, show=True):
 		"""Unlocks the attribute"""
-		attributes._lock(self.pm_node, attr_name, show, Kwargs)
+		attributes._lock(self.pm_node, attr_name, show, **Kwargs)
 	
 	def attr_connect(self, attr_name, target, target_attr, f=False):
 		"""Connects given attribute with target"""

@@ -1,5 +1,7 @@
 import pymel.core as pm
 import maya.cmds as cmds
+
+# from CARF.scripts.maya_core import nodes
 """
 Module to manage creation, editing and connecting of Maya attributes.
 
@@ -81,13 +83,19 @@ def _lock(node, attr_name, hide=True, **Kwargs):
 	""" Removes access to this attribtue
 	Locks attr_name and optionally hides it from the channel box
 	"""
-	node.setAttr(attr_name, keyable = False, lock = True, cb = not hide)
+	if not type(attr_name) is list:
+		attr_name = [attr_name]
+	for attr in attr_name:
+		node.setAttr(attr, keyable = False, lock = True, cb = not hide)
 
 def _unlock(node, attr_name, show=True, **Kwargs):
 	""" Returns access to this attribute
 	Unlocks attr_name and optionally shows it in the channel box
 	"""
-	node.setAttr(attr_name, keyable = True, lock = False, cb = show)
+	if type(attr_name) is str:
+		attr_name = [attr_name]
+	for attr in attr_name:
+		node.setAttr(attr, keyable = True, lock = False, cb = show)
 
 #TODO should this be done in nodes.py?
 def _link(node, attr_name, target_node, f=False):
@@ -97,7 +105,7 @@ def _link(node, attr_name, target_node, f=False):
 			attr_name (str): common attribute to be linked between
 			target_node : receiving node of the connection
 	"""
-	_connect(node, attr_name, target_node, attr_name, force=f)
+	_connect(node, attr_name, target_node, attr_name, f=f)
 
 def _connect(node, attr_name, target_node, target_attr, f=False):
 	"""Makes a direct connection from attr_name to target_attr
@@ -110,13 +118,14 @@ def _connectReverse(node, attr_name, target_node, target_attr, f=False):
 	""" Makes a reverse connection between attributes
 	Works like _connect but it runs the source attribute through a reverse node
 	"""
-	rev_name = '{}_{}'.format(node, attr)
+	rev_name = '{}_{}_REV'.format(node, attr_name)
 	if not pm.objExists(rev_name):
-		rev_node = nodes.Node('reverse', name = rev_name)
-		_connect(node, attr_name, rev_node, 'inputX')
+		rev = pm.createNode('reverse', name = rev_name)
+		_connect(node, attr_name, rev, 'inputX')
+		rev_node = rev
 	else:
 		rev_node = pm.PyNode(rev_name)
-	_connect(rev_node, 'outputX', target_node, target_attr, force = f)
+	_connect(rev_node, 'outputX', target_node, target_attr, f = f)
 
 def _connectNegative(node, attr_name, target_node, target_attr, f=False):
 	""" Connect the negative value of an attribute into another
@@ -124,10 +133,10 @@ def _connectNegative(node, attr_name, target_node, target_attr, f=False):
 	"""
 	mul_name = '{}_{}_neg'.format(node, attr)
 	if not pm.objExists(mul_name):
-		mul_node = nodes.Node('multiply', name = mul_name)
+		mul_node = pm.createNode('multiplyDivide', name = mul_name)
 		mul_node.setAttr('input2X', -1)
 		_connect(node, attr_name, mul_node, 'input1X')
 	else:
 		mul_node = pm.PyNode(mul_name)
 	
-	_connect(mul_node, 'outputX', target_node, target_attr, force = f)
+	_connect(mul_node, 'outputX', target_node, target_attr, f = f)
