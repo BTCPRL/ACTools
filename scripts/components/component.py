@@ -142,4 +142,4 @@ def build_controls(graph_node, comp_obj = None):
 		add_space = ctr_add_space
 	)
 
-	comp_obj.ctrls[graph_node] = new_ctr
+	comp_obj.ctrls[str(graph_node)] = new_ctr

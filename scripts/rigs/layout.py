@@ -13,7 +13,7 @@ class Layout(rig.Rig):
 
     def build(self):
         super(Layout, self).build()
-        self.root.ctrls[x].constrain(
+        self.root.ctrls[0].constrain(
             target = self.builder.geo_grp,
             constraint_type = 'parent'
         )

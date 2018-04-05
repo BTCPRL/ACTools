@@ -13,7 +13,7 @@ class Prop(rig.Rig):
 
 	def build(self):
 		super(Prop, self).build()
-		self.root.constrain(
+		self.root_ctr.constrain(
             target = self.builder.geo_grp,
             constraint_type = 'parent'
         )

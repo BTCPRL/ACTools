@@ -13,6 +13,7 @@ class Rig(object):
 		self.components = {}
 		
 		self.root_grp = None
+		self.root_ctr = None
 		self.geo_grp = None
 		self.ctrls_grp = None
 		self.setup_grp = None
@@ -26,7 +27,7 @@ class Rig(object):
 				'name': 'root',
 				'side': 'M',
 				'type' : 'root'
-				},
+			},
 			component_args = {
 				'asset_name': asset_name.capitalize()
 			}
@@ -95,6 +96,7 @@ class Rig(object):
 		"""Wrapper for build_component() call of self.root
 		"""
 		self.root.build_component()
+		self.root_ctr = self.root.ctrls['root']
 	
 	def extract_template_data(self):
 		""" Creates a dictionary with each component's template data
