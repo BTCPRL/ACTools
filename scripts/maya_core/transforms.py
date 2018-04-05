@@ -2,12 +2,12 @@ import pymel.core as pm
 import maya.cmds as cmds
 
 from CARF.scripts.maya_core import nodes
-
-
+reload(nodes)
 class Transform(nodes.Node):
 	"""docstring for Transform"""
 	def __init__(self, name, side=None, add_zero=False, add_space=False,
-		parent=None, position=[0,0,0,0,0,0], node_type='transform'):
+		parent=None, position=[0,0,0,0,0,0], match_object=False, 
+		driver=None, node_type = 'transform'):
 		
 		#Args validation
 		suffix = name.split('_')[-1]
@@ -31,27 +31,34 @@ class Transform(nodes.Node):
 
 		#Set up groups above ctrl
 		self.top_node = self
-		
 		if add_zero:
 			self.zero = Transform(
 					name = self.name.replace(suffix,'ZERO'),
 					side = side
 			)
 			self.set_top_node(self.zero)
-
 		if add_space:
 			self.space = Transform(
 				name = self.name.replace(suffix,'SPACE'),
 				side = side
 			)
 			self.set_top_node(self.space)
-
+		
+		#parent the node
 		if parent:
 			self.top_node.set_parent(parent)
 		
+		#set node's transforms
 		self.top_node.set_position(position[:3], relative = True)
 		if len(position) > 3:
 			self.top_node.set_rotation(position[3:], relative = True)
+		
+		#Match object overrides any given transforms
+		if match_object:
+			pm.delete(pm.parentConstraint(match_object, self.top_node))
+		
+		if driver:
+			self.top_node.constrain_to(driver, 'parent')
 
 	def set_parent(self, parent):
 		if not parent:
@@ -187,12 +194,20 @@ def _create_maya_constrain(driver, driven, constraint_type, mo=1, **kwargs):
 	Returns:
 		(pymel constraint): Pymel's contraint object
 	"""
+	no_mo = ['poleVector']
 	args_str = ''
 	for key in kwargs:
-		args_str = args_str + key +' = '+kwargs[key]
-
-	command_str = 'new_constraint = pm.%sConstraint("%s","%s",mo = %s,%s)'\
-								% (constraint_type, driver, driven,mo, args_str)
+		value = kwargs[key]
+		if type(value) is str:
+			args_str = '{},{}="{}"'.format(args_str,key,value)
+		else:
+			args_str = '{},{}={}'.format(args_str,key,value)
+	
+	args_dict = kwargs
+	if not constraint_type in no_mo:
+		args_dict['mo']=mo
+	command_str = 'new_constraint = pm.{}Constraint("{}","{}",**args_dict)'\
+										.format(constraint_type,driver, driven)
 	exec(command_str)
 
 	if '{}.interpType'.format(new_constraint) in new_constraint.listAttr():
@@ -205,32 +220,48 @@ def _create_maya_constrain(driver, driven, constraint_type, mo=1, **kwargs):
 def create_parent_spaces(node, spaces_name, spaces_nodes, controller, default_spaces=[0,1], default_blend=0):
 	
 	#Create constrain from spaces to node
-	node.constrain_to(spaces_nodes, constraint_type = 'parent', mo = 1)
+	cnst = node.constrain_to(spaces_nodes, constraint_type = 'parent', mo = 1)
+	wals = [x.split('.')[-1] for x in cnst.getWeightAliasList()]
 	#Add 2 (spaceA and spaceB) dropdown attributes in the controller plus one blend float attribute
 	for i,s in enumerate(['A','B']):
-		controller.add_attr(
-			name = 'space{}'.format(s),
+		controller.attr_add(
+			attr_name = 'space{}'.format(s),
 			attr_type = 'enum',
-			enum_list = spaces_name,
-			dv = default_spaces[i]
+			enums = spaces_name,
+			default_value = default_spaces[i]
 		)
-	controller.add_attr(
-		name = 'blend',
-		attr_type = 'float',
-		dv = default_blend
+	controller.attr_add(
+		attr_name = 'blend',
+		default_value = default_blend
 	)
 	#for each space:
 	for i, space in enumerate(spaces_name):
 	#	create 2 condition nodes (one for each dropdown attr)
 		cond_a = nodes.Node(
-			name = '{}_A'.format(space), 
+			name = '{}_{}_space_A'.format(node,space), 
 			node_type = 'condition',
 		)
+		cond_a.attr_set('secondTerm',i)
+		cond_a.attr_set('colorIfFalseR',0)
+		controller.attr_connect('spaceA', cond_a,'firstTerm')
+		controller.attr_connectReverse('blend', cond_a,'colorIfTrueR')
 
-	#	make an inverse connection from blend attr to color if true of first condition
+		cond_b = nodes.Node(
+			name = '{}_{}_space_B'.format(node,space), 
+			node_type = 'condition',
+		)
+		cond_b.attr_set('secondTerm',i)
+		cond_b.attr_set('colorIfFalseR',0)
+		controller.attr_connect('spaceB', cond_b,'firstTerm')
+		controller.attr_connect('blend', cond_b,'colorIfTrueR')
 
-	#	make a direct connection from blend attr to color if true of second condition
+		space_add = nodes.Node(
+			name = '{}_{}_space_val'.format(node,space),
+			node_type = 'add'
+		)
+		cond_a.attr_connect('outColorR',space_add,'input1D[0]')
+		cond_b.attr_connect('outColorR',space_add,'input1D[1]')
 
-	#	add the result of each condition
+		space_add.attr_connect('output1D', cnst, wals[i])
 
 	#	plug that sum into the corresponding weight alias of the constrain
