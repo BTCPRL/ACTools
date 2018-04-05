@@ -10,11 +10,12 @@ from CARF.data import global_data as g_data
 
 #Modules improt
 from CARF.scripts.maya_core import transforms as trans
-
+reload(trans)
 class Control(trans.Transform):
 	"""docstring for Control"""
 	def __init__(self, name, shape, color=None, size=1, side= g_data.center, 
-		add_zero=True, add_space=True, parent=None, position=[0,0,0,0,0,0]):
+		add_zero=True, add_space=True, parent=None, position=[0,0,0,0,0,0],
+		match_object=False, **Kwargs):
 
 		#Empty attributes for clarity of mind
 		self.shapes = []
@@ -27,7 +28,7 @@ class Control(trans.Transform):
 
 		super(Control, self).__init__(name = ctr_name, side = side, 
 			add_zero = add_zero, add_space = add_space, parent = parent, 
-			position = position, node_type = 'control')
+			position = position, node_type = 'control', match_object=match_object, **Kwargs)
 
 		self.create_ctr_shape(shape)
 		if color:
@@ -160,3 +161,18 @@ def add_to_controls_shape(ctr_name):
 	)
 
 	shape_file_write.close()
+
+def create_all_ctrls():
+	""" Creates all available ctrl shapes in the current scene
+	"""
+	shape_file_read = open(g_data.ctrls_shapes_file,'r')
+	current_shapes = json.load(shape_file_read)
+	x = 0
+	for shape in current_shapes.keys():
+		temp_ctr = Control(
+			name = shape,
+			side = 'M',
+			shape = shape,
+			position = [x,0,0,0,0,0,]
+		)
+		x = x + 3
