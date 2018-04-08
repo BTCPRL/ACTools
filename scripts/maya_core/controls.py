@@ -117,17 +117,17 @@ def get_curve_data(shape):
 	return curve_data
 
 def export_ctrl_shape(ctr_name):
-
-	name = ctr_name.replace('_CTR','')
+	"""For a given ctrl, returns it's shapes degree, from and points
+	"""
 	entries = {}
 
 	data_dict = {
-		name:entries
+		ctr_name:entries
 	}
 	
 	for x,shape in enumerate(cmds.listRelatives(ctr_name, shapes = 1)):
 		shape_data = get_curve_data(shape)
-		entries['shape%i' % x] = {
+		entries[shape] = {
 			'degree':shape_data[0],
 			'form':shape_data[1],
 			'points':shape_data[2]

@@ -74,4 +74,5 @@ asset_dev_folders = {
     'weights': None,
     'wip': None,
     'scenes': None,
+    'shapes':None
 }

@@ -1,14 +1,17 @@
 #Python imports
 import os
 import sys
-import imp 
+import imp
+import json
 
 #Maya imports
 import pymel.core as pm
+import maya.cmds as cmds
 
 #CARF imports
 from CARF.scripts import session
 from CARF.scripts.maya_core import maya_files
+from CARF.scripts.maya_core import controls
 reload(maya_files)
 class Builder(object):
 	"""
@@ -104,4 +107,55 @@ class Builder(object):
 
 		self.assemble_rig() #Builds all the components for the rig
 
+		self.import_rig_ctrls() #Import saved ctrls shapes
+
 		print '###  YUP  ###'
+
+	
+	def export_rig_ctrls(self):
+		""" Creates a json file containing the shape info for the rig ctrls
+		"""
+		#Get all ctrls under CONTROLS_GRP
+		all_ls = cmds.listRelatives(self.rig.ctrls_grp,ad = 1, type = 'transform')
+		ctrls_ls = [x for x in all_ls if x.split('_')[-1] == 'CTR']
+		
+		#Store their shape information 
+		rig_ctrls = {}
+		for ctr in ctrls_ls:
+			rig_ctrls.update(controls.export_ctrl_shape(ctr))
+		
+		try:
+			file_path = os.path.join(self.session_obj.paths['shapes'], 'shapes.json')
+			shapes_file_write = open(file_path,'w+')
+			json.dump(
+				rig_ctrls,
+				shapes_file_write,
+				indent = 4,
+				sort_keys = True
+			)
+
+			shapes_file_write.close()
+
+			print '--- Ctrls shapes exported! ---'
+		except:
+			print 'ERROR: Could not export ctrls shape'
+	
+	def import_rig_ctrls(self):
+		""" Loads the ctrl information from shapes.json and applies to the rig
+		"""
+
+		file_path = os.path.join(self.session_obj.paths['shapes'],'shapes.json')
+
+		if os.path.isfile(file_path):
+			file_read = open(file_path, 'r')
+			ctrls_data = json.load(file_read)
+			for ctr in ctrls_data.keys():
+				if cmds.objExists(ctr):
+					for shape in ctrls_data[ctr].keys():
+						points = ctrls_data[ctr][shape]['points']
+						for i,p in enumerate(points):
+							cmds.xform('%s.cv[%i]' % (shape, i), os = 1, ws = 0, t = p)
+				else:
+					print '%s was not found, shapes not imported.' % ctr
+		else:
+			print '###WARNING: Could not find shapes.json file for this asset'
