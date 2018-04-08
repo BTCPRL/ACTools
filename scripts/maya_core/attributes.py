@@ -86,7 +86,12 @@ def _lock(node, attr_name, hide=True, **Kwargs):
 	if not type(attr_name) is list:
 		attr_name = [attr_name]
 	for attr in attr_name:
-		node.setAttr(attr, keyable = False, lock = True, cb = not hide)
+		if attr in ['s','r','t'] and hide:
+			for ax in ['x','y','z']:
+				node.setAttr('{}{}'.format(attr,ax), lock = True, 
+												keyable = False, cb = not hide)
+		else:
+			node.setAttr(attr, keyable = False, lock = True, cb = not hide)
 
 def _unlock(node, attr_name, show=True, **Kwargs):
 	""" Returns access to this attribute
@@ -95,7 +100,12 @@ def _unlock(node, attr_name, show=True, **Kwargs):
 	if type(attr_name) is str:
 		attr_name = [attr_name]
 	for attr in attr_name:
-		node.setAttr(attr, keyable = True, lock = False, cb = show)
+		if attr in ['s','r','t'] and hide:
+			for ax in ['x','y','z']:
+				node.setAttr('{}{}'.format(attr,ax), lock = False, 
+												keyable = True, cb = show)
+		else:
+			node.setAttr(attr, keyable = True, lock = False, cb = show)
 
 #TODO should this be done in nodes.py?
 def _link(node, attr_name, target_node, f=False):

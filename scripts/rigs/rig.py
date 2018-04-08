@@ -19,8 +19,8 @@ class Rig(object):
 		self.setup_grp = None
 		self.skeleton_grp = None
 		
-		self.base_grps = [self.root_grp, self.geo_grp, self.ctrls_grp, 
-											self.setup_grp, self.skeleton_grp]
+		self.base_grps = ['root_grp', 'geo_grp', 'ctrls_grp', 
+											'setup_grp', 'skeleton_grp']
 
 		self.root = self.initialize_component(
 			common_args = {
@@ -82,7 +82,8 @@ class Rig(object):
 
 		#Create all the other base groups and parent them under root
 		for grp_var, name in zip(self.base_grps[1:], grp_names):
-			grp_var = trans.Transform(name = name, parent = self.root_grp)
+			grp = trans.Transform(name = name, parent = self.root_grp)
+			setattr(self,grp_var,grp)
 
 	
 	def build_base(self):
