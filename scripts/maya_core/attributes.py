@@ -86,7 +86,7 @@ def _lock(node, attr_name, hide=True, **Kwargs):
 	if not type(attr_name) is list:
 		attr_name = [attr_name]
 	for attr in attr_name:
-		if attr in ['s','r','t'] and hide:
+		if attr in ['s','r','t']:
 			for ax in ['x','y','z']:
 				node.setAttr('{}{}'.format(attr,ax), lock = True, 
 												keyable = False, cb = not hide)
@@ -100,7 +100,7 @@ def _unlock(node, attr_name, show=True, **Kwargs):
 	if type(attr_name) is str:
 		attr_name = [attr_name]
 	for attr in attr_name:
-		if attr in ['s','r','t'] and hide:
+		if attr in ['s','r','t']:
 			for ax in ['x','y','z']:
 				node.setAttr('{}{}'.format(attr,ax), lock = False, 
 												keyable = True, cb = show)
@@ -115,7 +115,15 @@ def _link(node, attr_name, target_node, f=False):
 			attr_name (str): common attribute to be linked between
 			target_node : receiving node of the connection
 	"""
-	_connect(node, attr_name, target_node, attr_name, f=f)
+	if type(attr_name) is str:
+		attr_name = [attr_name]
+	for attr in attr_name:
+		if attr in ['s','r','t']:
+			for ax in ['x','y','z']:
+				attr_link = '{}{}'.format(attr, ax)
+				_connect(node, attr_link, target_node, attr_link, f=f)
+		else:
+			_connect(node, attr, target_node, attr, f=f)
 
 def _connect(node, attr_name, target_node, target_attr, f=False):
 	"""Makes a direct connection from attr_name to target_attr
