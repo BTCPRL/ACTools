@@ -85,6 +85,13 @@ class Builder(object):
 		self.rig.build()
 		pass
 	
+	def finalize_rig(self):
+		""" Wrapper for the rig build method.
+		Builds all components and then executes the asset's build code
+		"""
+		self.rig.final_touches()
+		pass
+	
 	def build_rig(self):
 		"""Builds the final rig.
 		This will create a new scene and a new instance of the rig object. Don't
@@ -109,9 +116,18 @@ class Builder(object):
 
 		self.import_rig_ctrls() #Import saved ctrls shapes
 
+		self.finalize_rig() #Lock attributes, hide grps
+
 		print '###  YUP  ###'
 
-	
+	def pre_publish(self):
+		""" Preps the rig for publishing
+		Sets most nodes to not historically interesting.
+		Runs QC check (TODO)
+		"""
+		#TODO: implement
+		pass
+		
 	def export_rig_ctrls(self):
 		""" Creates a json file containing the shape info for the rig ctrls
 		"""

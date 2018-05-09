@@ -33,18 +33,25 @@ class Component(object):
 		pass
 	
 	def create_component_base(self):
+		"""TODO: Docstring
+		"""
 		self.ctrls_grp = trans.Transform(
 			name = '%s_ctrls_GRP' % self.name,
 			parent = 'CONTROLS_GRP'
 		)
+		self.ctrls_grp.attr_lock(['t','r','s','v'])
+		
 		self.setup_grp = trans.Transform(
 			name = '%s_setup_GRP' % self.name,
 			parent = 'SETUP_GRP'
 		)
+		self.setup_grp.attr_lock(['t','r','s','v'])
+		
 		self.skeleton_grp = trans.Transform(
 			name = '%s_skeleton_GRP' % self.name,
 			parent = 'SKELETON_GRP'
 		)
+		self.skeleton_grp.attr_lock(['t','r','s','v'])
 
 	def add_component_controler(self, ctr_data):
 		""" Adds controler data to the __component_controls_data dictionary
@@ -108,7 +115,7 @@ class Component(object):
 		return component_data
 
 	def finalize_component(self):
-		"""TODO
+		"""TODO: Implement
 		"""
 		pass
 		

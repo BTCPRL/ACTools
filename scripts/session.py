@@ -41,7 +41,6 @@ class Session(object):
 		#Asset related attributes
 		self.asset_set = False
 		self.asset_name = None
-		self.asset_built = False
 		
 		if project_name:
 			self.set_project()
@@ -170,10 +169,6 @@ class Session(object):
 	def publish_asset(self):
 		"""Description
 		"""
-		# if not self.asset_built:
-		# 	raise Exception('Asset was not succesfully built. Please build'\
-		# 		'succesfully and try again')
-		
 		#Check and creates the asset directory in the final drive
 		final_path = os.path.join(self.paths['final'], self.asset_type,
 			self.asset_name)

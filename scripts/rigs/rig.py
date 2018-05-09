@@ -112,3 +112,15 @@ class Rig(object):
 		print "All components will be built"
 		for comp_name in self.components.keys():
 			self.components[comp_name].build_component()
+
+	def final_touches(self):
+		"""
+		"""
+		to_hide = [self.setup_grp, self.skeleton_grp]
+		for grp in self.base_grps:
+			grp_obj = getattr(self, grp)
+			if grp_obj in to_hide:
+				grp_obj.attr_set('v',0)
+			grp_obj.attr_lock(['t','s','r','v'])
+		self.geo_grp.attr_set('overrideEnabled',1)
+		self.geo_grp.attr_set('overrideDisplayType',2)
