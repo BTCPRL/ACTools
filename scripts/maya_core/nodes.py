@@ -20,12 +20,18 @@ class Node(object):
 		self.node_type = node_type
 
 		node_name = name
-		if side:
-			if side not in g_data.positions_prefifx:
+		prefix = node_name.split('_')[0]
+		
+
+		if self.side:
+			if self.side not in g_data.positions_prefifx:
 				raise Exception('side has to be one of the following: '\
 					'%s' % g_data.positions_prefifx )
 			if not name.split('_')[0] == side:
 				node_name = '%s_%s' % (side, name)
+				
+		elif prefix in g_data.positions_prefifx:
+				self.side = prefix
 		
 		#Supported types dictionary
 		#Format: {name: [suffix, maya type]}
