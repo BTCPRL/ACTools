@@ -26,24 +26,24 @@ class Root(component.Component):
 			}
 		)
 
-	def create_template_grps(self):
-		"""	Creates top group where template controls will be parented under
-		"""
-		self.template_grp = trans.Transform(
-				name = 'TEMPLATE_GRP'
-			)
-		pass
+	# def create_template_grps(self):
+	# 	"""	Creates top group where template controls will be parented under
+	# 	"""
+	# 	self.template_grp = trans.Transform(
+	# 			name = 'TEMPLATE_GRP'
+	# 		)
+	# 	pass
 
-	def build_template(self):	
-		self.ctrls = {}		
-		self.create_template_grps()
-		self.root_ctr = controls.Control(
-				name = 'root',
-				shape = 'root',
-                parent=self.template_grp
-			)
-		self.ctrls[self.root_ctr.name] = self.root_ctr
-		pass
+	# def build_template(self):	
+	# 	self.ctrls = {}		
+	# 	self.create_template_grps()
+	# 	self.root_ctr = controls.Control(
+	# 			name = 'root',
+	# 			shape = 'root',
+    #             parent=self.template_grp
+	# 		)
+	# 	self.ctrls[self.root_ctr.name] = self.root_ctr
+	# 	pass
 
 	#This could be better, this is just hard coded and it would require 
 	## constant updating of the code. Needs proper logic

@@ -1,5 +1,6 @@
 import imp 
 import os
+from CARF.scripts.maya_core import dependency_graph
 from CARF.scripts.maya_core import transforms as trans
 
 class Rig(object):
@@ -11,14 +12,13 @@ class Rig(object):
 
 		#Empty attributes for clarity of mind
 		self.components = {}
-		
+		self.template_data = None
 		self.root_grp = None
 		self.root_ctr = None
 		self.geo_grp = None
 		self.ctrls_grp = None
 		self.setup_grp = None
 		self.skeleton_grp = None
-		
 		self.base_grps = ['root_grp', 'geo_grp', 'ctrls_grp', 
 											'setup_grp', 'skeleton_grp']
 
@@ -26,7 +26,8 @@ class Rig(object):
 			common_args = {
 				'name': 'root',
 				'side': 'M',
-				'type' : 'root'
+				'type' : 'root',
+				'driver' : 'None'
 			},
 			component_args = {
 				'asset_name': asset_name.capitalize()
@@ -35,12 +36,13 @@ class Rig(object):
 
 		# self.build_base_grps()
 		# self.root_settings = None
-
+	
 	def register(self, common_args, component_args={}):
 		""" Intizializes and stores component object to the rig.
 		"""
 		component_obj = self.initialize_component(common_args, component_args)
 		self.components[component_obj.name] = component_obj
+		return component_obj
 
 	def initialize_component(self, common_args, component_args={}):
 		""" Initializes a component object. 
@@ -51,6 +53,8 @@ class Rig(object):
 			component_args (dict) : Keyword arguments specific to each type
 		Returns:
 			component: An instance of the specified component type 
+		TODO : 
+			Why is this using a fixed path?
 		"""
 		component_type = common_args['type']
 		component_name = common_args['name']
@@ -64,10 +68,25 @@ class Rig(object):
 		component_obj = component_class(common_args, component_args)
 
 		return component_obj
-
-	def build_rig_template(self):
+	
+	def set_template_data(self, data):
+		""" Saves data into rig.template_data attribute
+		It also assigns each component it's own template data
+		"""
+		if data.keys() == self.components.keys():
+			print 'good template data'
+			self.template_data = data
+			for comp, comp_data in data.iteritems():
+				self.components[comp].template_data = comp_data
+		else:
+			print 'nope', data
+		
+	def build_template(self):
 		'''Builds each component's template
 		'''
+		self.template_grp = trans.Transform(
+			name = 'TEMPLATE_GRP'
+		)
 		for comp_name in self.components.keys():
 			self.components[comp_name].build_template()
 	
@@ -84,34 +103,17 @@ class Rig(object):
 		for grp_var, name in zip(self.base_grps[1:], grp_names):
 			grp = trans.Transform(name = name, parent = self.root_grp)
 			setattr(self,grp_var,grp)
-
 	
-	def build_base(self):
-		"""Wrapper for building base groups and root component
-		"""
-		self.build_base_grps()
-		self.build_root()
-
-
 	def build_root(self):
 		"""Wrapper for build_component() call of self.root
 		"""
 		self.root.build_component()
-		self.root_ctr = self.root.ctrls['root']
-	
-	def extract_template_data(self):
-		""" Creates a dictionary with each component's template data
-		"""
-		template_data = {}
-		for comp_name in self.components.keys():
-			template_data[comp_name] = \
-								self.components[comp_name].get_template_data()
-		print template_data
-		
+		self.root_ctr = self.root.ctrls['M_root_CTR']
+
 	def build(self):
-		print "All components will be built"
 		for comp_name in self.components.keys():
 			self.components[comp_name].build_component()
+			self.components[comp_name].setup_driver()
 
 	def final_touches(self):
 		"""
@@ -124,3 +126,5 @@ class Rig(object):
 			grp_obj.attr_lock(['t','s','r','v'])
 		self.geo_grp.attr_set('overrideEnabled',1)
 		self.geo_grp.attr_set('overrideDisplayType',2)
+		for comp_name in self.components.keys():
+			self.components[comp_name].finalize_component()

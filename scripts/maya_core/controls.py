@@ -15,7 +15,7 @@ class Control(trans.Transform):
 	"""docstring for Control"""
 	def __init__(self, name, shape, color=None, size=1, side= g_data.center, 
 		add_zero=True, add_space=True, parent=None, position=[0,0,0,0,0,0],
-		match_object=False, **Kwargs):
+		match_object=False, template_ctr=False):
 
 		#Empty attributes for clarity of mind
 		self.shapes = []
@@ -28,11 +28,19 @@ class Control(trans.Transform):
 
 		super(Control, self).__init__(name = ctr_name, side = side, 
 			add_zero = add_zero, add_space = add_space, parent = parent, 
-			position = position, node_type = 'control', match_object=match_object, **Kwargs)
+			position = position, node_type = 'control', 
+			match_object = match_object)
 
+		#Create shape
+		if template_ctr:
+			shape = 'cube'
 		self.create_ctr_shape(shape)
+
+		#Add color to shape
 		if color:
 			self.set_color(color = color)
+		elif template_ctr:
+			self.set_color(color = g_data.template_sides_color[side])
 		else:
 			self.set_color(color = g_data.sides_color[side])
 

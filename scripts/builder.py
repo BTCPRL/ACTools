@@ -9,28 +9,42 @@ import pymel.core as pm
 import maya.cmds as cmds
 
 #CARF imports
+from CARF.data import global_data as g_data
+
 from CARF.scripts import session
 from CARF.scripts.maya_core import maya_files
 from CARF.scripts.maya_core import controls
 reload(maya_files)
+
 class Builder(object):
-	"""
+	""" 
 	Handles the build process of a given asset, requires a session object with
-	paths information. It will create a Rig object based on each asset build
+	paths information. It will create a Rig object based on each asset's build
 	code.
 	"""
 	def __init__(self, session_obj):
 		
 		self.session_obj = session_obj
 		self.build_file = '%s_build.py' % session_obj.asset_name
-		
-		self.rig_base = False
+		self.stage = 'init'
 		self.geo_grp = None
+		self.rig_base = False
+		self.template_data = None
 		#Dynamically imports and reload [asset_name]_build.py
 		self.asset_module = imp.load_source(
 			'imported_asset_module',
 			os.path.join(session_obj.paths['asset'],self.build_file)
 		)
+
+	def set_stage(self, stage):
+		"""Changes current stage of the builder.
+		Needed for preventing undesired exports/imports
+		"""
+		#TODO: shouldn't need this as this shouldn't be user input, right?
+		if stage not in g_data.builder_stages:
+			raise Exception('%s is not a valid stage for the builder')
+		else:
+			self.stage = stage
 
 	def initialize_rig(self):
 		""" Creates an instance of the rig object
@@ -45,9 +59,9 @@ class Builder(object):
 		""" Builds base groups and root controller. 
 		Sets rig_base attribute
 		"""
-		self.rig.build_base()
+		self.rig.build_base_grps()
+		self.rig.build_root()
 		self.rig_base = True
-
 
 	def import_geo(self):
 		"""Imports the asset geo to the scene. 
@@ -73,10 +87,16 @@ class Builder(object):
 			top_grp.setParent('GEO_GRP') 
 			self.geo_grp = top_grp
 		return new_nodes
-		
 
 	def build_template(self):
-		pass
+		""" Call to rig's template build.
+		Will build each component's tempalte
+		"""
+		path = self.session_obj.paths['template']
+		template_file = os.path.join(path, 'template.json')
+		if os.path.isfile(template_file):
+			self.import_template_data()
+		self.rig.build_template()
 	
 	def assemble_rig(self):
 		""" Wrapper for the rig build method.
@@ -89,9 +109,66 @@ class Builder(object):
 		""" Wrapper for the rig build method.
 		Builds all components and then executes the asset's build code
 		"""
+		self.set_stage('finalize')
 		self.rig.final_touches()
 		pass
 	
+	def build_rig_template(self):
+		"""Builds the rig template
+		Sets the current stage to template and forces a new maya scene
+		"""
+		self.set_stage('template')
+
+		maya_files.new_file() #New scene
+		
+		self.initialize_rig() #Instanciates rig object
+
+		self.setup_rig_base() #Creates base groups and root
+
+		self.import_geo() #Imports the geo and parents it under the rig
+
+		self.build_template() #Creates components templates
+
+	def get_template_data(self):
+		""" Creates a dictionary with each component's template data
+		"""
+		template_data = {}
+		for comp_name in self.rig.components.keys():
+			template_data[comp_name] = \
+							self.rig.components[comp_name].get_template_data()
+		return template_data
+
+	def export_template_data(self):
+		""" Gets current template data, saves it in a json file
+		"""
+		if self.stage is 'template':
+			data = self.get_template_data()
+			path = os.path.join(self.session_obj.paths['template'], 
+																'template.json')
+			with open(path, 'w') as file:
+				json.dump(data, file, indent = 4, sort_keys = True)
+				print '### Template data succesfully extracted! ###'
+		else:
+			print "###Warning: Not in the template stage,"\
+												"can't export template data"
+
+	def import_template_data(self):
+		""" Loads existing template data from template.json file
+		"""
+		path = os.path.join(self.session_obj.paths['template'], 'template.json')
+		if os.path.isfile(path):
+			#Loads json into variable
+			try:
+				with open(path, 'r') as file:
+					template_data = json.load(file)
+			except ValueError:
+				raise Exception('There was a problem reading tempalte.json'\
+										'check that it jas a valid json format')
+			#Stores variable into rig object
+			self.rig.set_template_data(template_data)
+		else:
+			raise Exception('No template data found')
+
 	def build_rig(self):
 		"""Builds the final rig.
 		This will create a new scene and a new instance of the rig object. Don't
@@ -104,10 +181,14 @@ class Builder(object):
 			Binds geometry
 			Finalizes the rig
 		"""
+		self.set_stage('build')
+
 		maya_files.new_file() #New scene
 		
 		self.initialize_rig() #Instanciates rig object
 
+		self.import_template_data() #Load saved tempalte data
+		
 		self.setup_rig_base() #Creates base groups and root
 
 		self.import_geo() #Imports the geo and parents it under the rig
@@ -119,7 +200,7 @@ class Builder(object):
 		self.finalize_rig() #Lock attributes, hide grps
 
 		print '###  YUP  ###'
-
+	
 	def pre_publish(self):
 		""" Preps the rig for publishing
 		Sets most nodes to not historically interesting.
@@ -132,7 +213,8 @@ class Builder(object):
 		""" Creates a json file containing the shape info for the rig ctrls
 		"""
 		#Get all ctrls under CONTROLS_GRP
-		all_ls = cmds.listRelatives(self.rig.ctrls_grp,ad = 1, type = 'transform')
+		all_ls = cmds.listRelatives(self.rig.ctrls_grp, 
+													ad = 1, type = 'transform')
 		ctrls_ls = [x for x in all_ls if x.split('_')[-1] == 'CTR']
 		
 		#Store their shape information 
@@ -141,7 +223,8 @@ class Builder(object):
 			rig_ctrls.update(controls.export_ctrl_shape(ctr))
 		
 		try:
-			file_path = os.path.join(self.session_obj.paths['shapes'], 'shapes.json')
+			file_path = os.path.join(self.session_obj.paths['shapes'], 
+																'shapes.json')
 			shapes_file_write = open(file_path,'w+')
 			json.dump(
 				rig_ctrls,
@@ -159,19 +242,25 @@ class Builder(object):
 	def import_rig_ctrls(self):
 		""" Loads the ctrl information from shapes.json and applies to the rig
 		"""
-
-		file_path = os.path.join(self.session_obj.paths['shapes'],'shapes.json')
-
-		if os.path.isfile(file_path):
-			file_read = open(file_path, 'r')
-			ctrls_data = json.load(file_read)
-			for ctr in ctrls_data.keys():
-				if cmds.objExists(ctr):
-					for shape in ctrls_data[ctr].keys():
-						points = ctrls_data[ctr][shape]['points']
-						for i,p in enumerate(points):
-							cmds.xform('%s.cv[%i]' % (shape, i), os = 1, ws = 0, t = p)
-				else:
-					print '%s was not found, shapes not imported.' % ctr
+		if self.stage in ['template', 'init']:
+			print "###WARNING: Can't import control shapes when working on"\
+										"the template o init stages of the rig"
 		else:
-			print '###WARNING: Could not find shapes.json file for this asset'
+			file_path = os.path.join(
+				self.session_obj.paths['shapes'],
+				'shapes.json'
+			)
+			if os.path.isfile(file_path):
+				file_read = open(file_path, 'r')
+				ctrls_data = json.load(file_read)
+				for ctr in ctrls_data.keys():
+					if cmds.objExists(ctr):
+						for shape in ctrls_data[ctr].keys():
+							points = ctrls_data[ctr][shape]['points']
+							for i,p in enumerate(points):
+								cmds.xform('%s.cv[%i]' % (shape, i), os = 1, 
+																ws = 0, t = p)
+					else:
+						print '%s was not found, shapes not imported.' % ctr
+			else:
+				print '###WARNING: Could not find shapes.json file'
