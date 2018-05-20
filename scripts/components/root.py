@@ -21,6 +21,7 @@ class Root(component.Component):
 			ctr_data = {
 				'name':'root',
 				'side':'M',
+				'color':'dark_yellow',
 				'shape':'root',
 				'parent':self.ctrls_grp
 			}

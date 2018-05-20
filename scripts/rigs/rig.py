@@ -26,8 +26,7 @@ class Rig(object):
 			common_args = {
 				'name': 'root',
 				'side': 'M',
-				'type' : 'root',
-				'driver' : 'None'
+				'type' : 'root'
 			},
 			component_args = {
 				'asset_name': asset_name.capitalize()

@@ -10,13 +10,18 @@ class Prop(rig.Rig):
 				'name': 'cog',
 				'side': 'M',
 				'type' : 'cog',
-				'driver': 'M_root_CTR'
+				'driver': 'M_root_CTR',
+				'scale_driver': 'M_root_CTR'
 			}
 		)
 
 	def build(self):
 		super(Prop, self).build()
-		self.cog.ctrls['M_cog_CTR'].constrain(
+		self.cog.cog_ctr.constrain(
             target = self.builder.geo_grp,
             constraint_type = 'parent'
+        )
+		self.cog.cog_ctr.constrain(
+            target = self.builder.geo_grp,
+            constraint_type = 'scale'
         )

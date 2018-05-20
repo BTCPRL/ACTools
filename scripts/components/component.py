@@ -16,10 +16,13 @@ class Component(object):
 		#Empty attributes
 		self.side = common_args['side']
 		self.name = '%s_%s' % (self.side,common_args['name'])
-		if common_args['type'] == 'root':
-			self.driver_target = False
-		else:
+		self.driver_target = False
+		self.scale_driver_target = False
+		if common_args['type'] != 'root':
 			self.driver_target = common_args['driver']
+			if 'scale_driver' in common_args.keys():
+				self.scale_driver_target = common_args['scale_driver']
+				
 		self.hierarchy_graph = dependency_graph.Dependency_graph(
 			component_name = self.name)
 		
@@ -111,6 +114,26 @@ class Component(object):
 				mo = False
 			)
 			self.driver_grp.constrain(self.ctrls_grp, 'parent')
+		
+		if self.scale_driver_target:
+			if self.scale_driver_target == self.driver_target:
+				self.driver_grp.constrain_to(
+					self.driver_target,
+					'scale',
+					mo = True
+				)
+				self.driver_grp.constrain(self.ctrls_grp, 'scale')
+			else:
+				self.scale_driver_grp = trans.Transform(
+					name = '%s_scale_driver_GRP' % self.name,
+					parent = self.setup_grp
+				)
+				self.scale_driver_grp.constrain_to(
+					self.scale_driver_target, 
+					'parent',  
+					mo = False
+				)
+				self.scale_driver_grp.constrain(self.ctrls_grp, 'scale')
 
 	def build_template(self, template_data = None):
 		"""
@@ -166,41 +189,21 @@ def build_controls(graph_node, comp_obj = None, template = False):
 	Uses the @travel_graph decorator to create all the controlers of the given
 	component 
 	"""
-
 	data = comp_obj.component_ctrls_data[str(graph_node)]
+	
 	#Data provided by default at 'add_component_controler' method
 	ctr_name = data['name']
 	ctr_side = data['side']
-	ctr_shape = data['shape']
-	#Optional data
-	ctr_size = data['size'] if 'size' in data.keys() else 1
+
+	#Template stage specific behavior
 	if template:
-		ctr_parent = comp_obj.template_grp
-	else:
-		ctr_parent=data['parent'] if 'parent' in data.keys() \
-														else comp_obj.ctrls_grp
-	ctr_add_zero = data['zero'] if 'zero' in data.keys() else True
-	ctr_add_space = data['space'] if 'space' in data.keys() else True
+		data['parent'] = comp_obj.template_grp
 	
 	if comp_obj.template_data:
 		full_name = '_'.join([ctr_side, ctr_name, 'CTR'])
-		ctr_position =  comp_obj.template_data[full_name]['transform']
-	elif 'position' in data.keys():
-		ctr_position = data['position']
-	else:
-		ctr_position = [0,0,0,0,0,0]
+		data['position'] =  comp_obj.template_data[full_name]['transform']
 		
 	#Creating the controler
-	new_ctr = controls.Control(
-		name = ctr_name,
-		side = ctr_side,
-		shape = ctr_shape,
-		size = ctr_size,
-		parent = ctr_parent,
-		position = ctr_position,
-		add_zero = ctr_add_zero,
-		add_space = ctr_add_space,
-		template_ctr = template
-	)
-
+	new_ctr = controls.Control(**data)
+	setattr(comp_obj, '{}_ctr'.format(ctr_name), new_ctr)
 	comp_obj.ctrls[str(graph_node)] = new_ctr
