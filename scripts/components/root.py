@@ -23,7 +23,8 @@ class Root(component.Component):
 				'side':'M',
 				'color':'dark_yellow',
 				'shape':'root',
-				'parent':self.ctrls_grp
+				'parent':self.ctrls_grp,
+				'add_joint':'follow'
 			}
 		)
 

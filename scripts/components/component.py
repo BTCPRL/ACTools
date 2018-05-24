@@ -1,4 +1,5 @@
 from CARF.scripts.maya_core import controls
+from CARF.scripts.maya_core import joints
 from CARF.scripts.maya_core import dependency_graph
 from CARF.scripts.maya_core import transforms as trans
 
@@ -89,6 +90,14 @@ class Component(object):
 			if not needed_data in ctr_data.keys():
 				raise Exception('Please provide %s for controler' % needed_data)
 		
+		#Joint data validation
+		if 'add_joint' in ctr_data.keys():
+			if ctr_data['add_joint'] in ['add','follow','parentConstraint']:
+				pass
+			else:
+				raise Exception("When adding a controller joint, the only"\
+					" available types are: ['add','follow','parentConstraint'")
+		
 		ctr_name =  '_'.join([ctr_data['side'], ctr_data['name'], 'CTR'])
 		ctr_parent = ctr_data['parent'] 
 
@@ -138,6 +147,7 @@ class Component(object):
 	def build_template(self, template_data = None):
 		"""
 		"""
+		self.create_component_base()
 		if template_data:
 			self.template_data = template_data
 		self.template_grp = trans.Transform(
@@ -188,12 +198,21 @@ def build_controls(graph_node, comp_obj = None, template = False):
 	Private function, can't be accesed outside of component.py 
 	Uses the @travel_graph decorator to create all the controlers of the given
 	component 
+	TODO: Should/could this be a method instead of a function?
 	"""
 	data = comp_obj.component_ctrls_data[str(graph_node)]
 	
 	#Data provided by default at 'add_component_controler' method
 	ctr_name = data['name']
 	ctr_side = data['side']
+
+	#Check if ctrl needs a joint to constrain
+	create_jnt = False
+	if 'add_joint' in data.keys():
+		if data['add_joint']:
+			create_jnt = True
+			joint_connection = data['add_joint']
+		del(data['add_joint']) #Remove joint from data to avoid argument error
 
 	#Template stage specific behavior
 	if template:
@@ -205,5 +224,28 @@ def build_controls(graph_node, comp_obj = None, template = False):
 		
 	#Creating the controler
 	new_ctr = controls.Control(**data)
+	#Dynamically adding the new ctr as an attribute for the component
 	setattr(comp_obj, '{}_ctr'.format(ctr_name), new_ctr)
 	comp_obj.ctrls[str(graph_node)] = new_ctr
+
+	#Creating optional driven joint
+	if create_jnt:
+		#Get jnt name
+		jnt_name = ctr_name
+		if 'CTR' == ctr_name.split('_')[-1]:
+			jnt_name = ctr_name[:-4]
+		
+		#Create new joint
+		new_jnt = joints.Joint(
+			name = jnt_name,
+			parent = comp_obj.skeleton_grp,
+			match_object = new_ctr
+		)
+		#Dynamically adding the new joint as an attribute for the component
+		setattr(comp_obj, '{}_jnt'.format(jnt_name), new_jnt)
+		if joint_connection in ['parentConstraint', 'follow']:
+			new_ctr.constrain(new_jnt,'parent', mo = 0)
+		if joint_connection == 'follow':
+			new_ctr.constrain(new_jnt,'scale', mo = 0)
+		if joint_connection == 'add':
+			pass #Nothing happenss, joint is open for future connections

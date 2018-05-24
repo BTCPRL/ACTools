@@ -17,11 +17,11 @@ class Prop(rig.Rig):
 
 	def build(self):
 		super(Prop, self).build()
-		self.cog.cog_ctr.constrain(
+		self.cog.cog_jnt.constrain(
             target = self.builder.geo_grp,
             constraint_type = 'parent'
         )
-		self.cog.cog_ctr.constrain(
+		self.cog.cog_jnt.constrain(
             target = self.builder.geo_grp,
             constraint_type = 'scale'
         )
