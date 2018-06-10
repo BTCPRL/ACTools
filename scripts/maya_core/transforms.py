@@ -14,7 +14,7 @@ class Transform(nodes.Node):
 		if len(name.split('_')) < 2 or suffix.islower():
 			raise Exception('Transfroms need a suffix in the name.'\
 				' Suffix should be all upper case')
-		if len(position) > 6:
+		if 3 < len(position) > 6:
 			raise Exception('Position has to be of the form [tx,ty,tz] or '\
 				'[tx,ty,tz,rx,ry,rz]')
 
@@ -46,6 +46,7 @@ class Transform(nodes.Node):
 		
 		#parent the node
 		if parent:
+			self.parent = parent
 			self.top_node.set_parent(parent)
 		
 		#set node's transforms
@@ -70,6 +71,35 @@ class Transform(nodes.Node):
 		temp = self.top_node
 		pm.parent(temp, node)
 		self.top_node = node
+		if self.parent:
+			self.top_node.set_parent(self.parent)
+
+	def add_top_levels(self, top_levels):
+		"""Creates groups above the current top node.
+		This groups will have numerical naming if the input is a number or they
+		will match the names given if the input is a list of string
+		args:
+			top_levels (int or [str]): 
+				if int: Number of groups to add
+				if [str]: Name of groups to add
+		"""
+		#Validation
+		if type(top_levels) is int:
+			layers_list = range(1,top_levels+1)
+		elif type(top_levels) is list:
+			layers_list = top_levels
+		else:
+			raise Exception('top_levels can only be a int or a list of str')
+		
+		current_top = self.top_node
+		suffix = self.name.split('_')[-1]
+		for layer_name in reversed(layers_list):
+			extra_layer = Transform(
+				name = self.name.replace(suffix,'{}_ZERO'.format(layer_name)),
+				match_object = self,
+				side = self.side
+			)
+			self.set_top_node(extra_layer)
 
 	#TODO: This 2 methods are almost the same, try to merge them
 	def constrain(self, target, constraint_type, mo = 1, **kwargs):
@@ -90,8 +120,8 @@ class Transform(nodes.Node):
 				mo = mo,
 				**kwargs
 			)
-			# t.constraints.append(new_constraint)
-			#TODO: figure out if you are getting your transform class or a regular maya transform
+			if hasattr(t, constraints):
+				t.constraints.append(new_constraint)
 
 		return new_constraint
 		
@@ -217,12 +247,14 @@ def _create_maya_constrain(driver, driven, constraint_type, mo=1, **kwargs):
 
 
 
-def create_parent_spaces(node, spaces_name, spaces_nodes, controller, default_spaces=[0,1], default_blend=0):
-	
+def create_parent_spaces(node, spaces_name, spaces_nodes, controller, 
+		default_spaces=[0,1], default_blend=0):
+	"""
+	"""
 	#Create constrain from spaces to node
 	cnst = node.constrain_to(spaces_nodes, constraint_type = 'parent', mo = 1)
 	wals = [x.split('.')[-1] for x in cnst.getWeightAliasList()]
-	#Add 2 (spaceA and spaceB) dropdown attributes in the controller plus one blend float attribute
+	#Add attributes to control parent space blending
 	for i,s in enumerate(['A','B']):
 		controller.attr_add(
 			attr_name = 'space{}'.format(s),
