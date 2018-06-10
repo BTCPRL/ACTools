@@ -102,6 +102,7 @@ class Builder(object):
 		""" Wrapper for the rig build method.
 		Builds all components and then executes the asset's build code
 		"""
+		self.rig.assemble_components(self.rig.dependency_graph.root_node)
 		self.rig.build()
 		pass
 	

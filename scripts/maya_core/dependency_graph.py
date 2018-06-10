@@ -6,15 +6,15 @@ def travel_graph(function):
     Returns:
         function: wrapped function
     """
-    def decorator_wrapper(start, **kwargs):
+    def decorator_wrapper(obj_instance, start, **kwargs):
         """Catches the argument for the function
         Args:
             start (Graph_node): first node of the graph
             **kwargs :  arguments to pass to the function
         """
-        function(start, **kwargs)
+        function(obj_instance, start, **kwargs)
         for node in start.children:
-            decorator_wrapper(start = node,**kwargs)
+            decorator_wrapper(obj_instance, start = node,**kwargs)
     return decorator_wrapper
 
 class Graph_node(object):
@@ -49,14 +49,14 @@ class Graph_node(object):
 class Dependency_graph(object):
     """ Graph to track a sequence of dependencies
     """
-    def __init__(self, component_name, component_root_name = None):
+    def __init__(self, graph_name, graph_root_name = None):
 
-        self.component_name = component_name
+        self.graph_name = graph_name
         self.nodes = {}
         self.root_node = None
-        if component_root_name:
-            self.root_node = Graph_node(component_root_name)
-            self.nodes[component_root_name] = self.root_node
+        if graph_root_name:
+            self.root_node = Graph_node(graph_root_name)
+            self.nodes[graph_root_name] = self.root_node
         
     def add_node(self, node_name, node_parent):
         """ Inserts a node into the graph's dependencies
@@ -76,7 +76,7 @@ class Dependency_graph(object):
         else:
             if self.get_node(node_name, self.root_node):
                 raise Exception('%s is already added to the %s graph'\
-                    % (node_name, self.component_name))
+                    % (node_name, self.graph_name))
 
             #Looking for parent
             n_parent = self.get_node(node_name = node_parent,

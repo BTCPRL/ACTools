@@ -33,14 +33,27 @@ class Rig(object):
 			}
 		)
 
+		self.dependency_graph = dependency_graph.Dependency_graph(
+			graph_name = self.asset_name,
+			graph_root_name = self.root.name
+		)
 		# self.build_base_grps()
 		# self.root_settings = None
 	
 	def register(self, common_args, component_args={}):
 		""" Intizializes and stores component object to the rig.
 		"""
+		#Instancing the component
 		component_obj = self.initialize_component(common_args, component_args)
 		self.components[component_obj.name] = component_obj
+		
+		#Adding the component to the dependency graph
+		driver_full_name = str(common_args['driver'])
+		driver_component = driver_full_name.split('.')[0]
+		self.dependency_graph.add_node(
+			node_name = component_obj.name,
+			node_parent = component_obj.driver_component
+		)
 		return component_obj
 
 	def initialize_component(self, common_args, component_args={}):
@@ -102,17 +115,27 @@ class Rig(object):
 		for grp_var, name in zip(self.base_grps[1:], grp_names):
 			grp = trans.Transform(name = name, parent = self.root_grp)
 			setattr(self,grp_var,grp)
+
+	@dependency_graph.travel_graph
+	def assemble_components(self, comp_graph_node):
+		comp_name = str(comp_graph_node)
+		if comp_name != 'M_root':
+			
+			self.components[comp_name].build_component()
+			self.components[comp_name].setup_driver()
 	
+	def build(self):
+		"""This method will be overwritten in each rig type
+		This definition is to avoid crashing for rig types without build method
+		"""
+		pass
+
 	def build_root(self):
 		"""Wrapper for build_component() call of self.root
 		"""
 		self.root.build_component()
 		self.root_ctr = self.root.ctrls['M_root_CTR']
 
-	def build(self):
-		for comp_name in self.components.keys():
-			self.components[comp_name].build_component()
-			self.components[comp_name].setup_driver()
 
 	def final_touches(self):
 		"""

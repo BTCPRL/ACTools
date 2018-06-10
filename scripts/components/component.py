@@ -19,13 +19,26 @@ class Component(object):
 		self.name = '%s_%s' % (self.side,common_args['name'])
 		self.driver_target = False
 		self.scale_driver_target = False
+
+		#Adding the drivers
+		#Drivers come defined as component.node we need to split this data
 		if common_args['type'] != 'root':
-			self.driver_target = common_args['driver']
-			if 'scale_driver' in common_args.keys():
-				self.scale_driver_target = common_args['scale_driver']
+			try:
+				self.driver_target = common_args['driver'].split('.')[1]
+				self.driver_component = common_args['driver'].split('.')[0]
+				#Scale drivers also need to be extracted
+				if 'scale_driver' in common_args.keys():
+					self.scale_driver_target =\
+									   common_args['scale_driver'].split('.')[1]
+					self.scale_driver_component =\
+									   common_args['scale_driver'].split('.')[0]
+			except IndexError:
+				raise IndexError("Drivers must be defined using the"\
+						" component name and the node name separated by '.'\n"\
+						"Example: 'M_cog.M_cog_JNT'")
 				
 		self.hierarchy_graph = dependency_graph.Dependency_graph(
-			component_name = self.name)
+			graph_name = self.name)
 		
 		self.component_ctrls_data = {}
 		self.template_data = None
@@ -86,7 +99,7 @@ class Component(object):
 		"""
 		
 		#Validation
-		for needed_data in ['name','side','shape']:
+		for needed_data in ['name','side','shape', 'parent']:
 			if not needed_data in ctr_data.keys():
 				raise Exception('Please provide %s for controler' % needed_data)
 		
@@ -154,12 +167,11 @@ class Component(object):
 			name = '%s_template_GRP' % self.name,
 			parent = 'TEMPLATE_GRP'
 		)
-		build_controls(self.hierarchy_graph.root_node, 
-			comp_obj = self, template = True)
+		self.build_controls(self.hierarchy_graph.root_node, template = True)
 
 	def build_component(self):
 		self.create_component_base()
-		build_controls(self.hierarchy_graph.root_node, comp_obj = self)
+		self.build_controls(self.hierarchy_graph.root_node)
 			
 	def solve(self, template=False): 
 		"""Adds the logic to the component
@@ -192,60 +204,60 @@ class Component(object):
 		for grp in [self.ctrls_grp, self.skeleton_grp, self.setup_grp]:
 			grp.attr_lock(['t','r','s','v'])
 		
-@dependency_graph.travel_graph
-def build_controls(graph_node, comp_obj = None, template = False):
-	""" Using the component data, builds a controler
-	Private function, can't be accesed outside of component.py 
-	Uses the @travel_graph decorator to create all the controlers of the given
-	component 
-	TODO: Should/could this be a method instead of a function?
-	"""
-	data = comp_obj.component_ctrls_data[str(graph_node)]
-	
-	#Data provided by default at 'add_component_controler' method
-	ctr_name = data['name']
-	ctr_side = data['side']
-
-	#Check if ctrl needs a joint to constrain
-	create_jnt = False
-	if 'add_joint' in data.keys():
-		if data['add_joint']:
-			create_jnt = True
-			joint_connection = data['add_joint']
-		del(data['add_joint']) #Remove joint from data to avoid argument error
-
-	#Template stage specific behavior
-	if template:
-		data['parent'] = comp_obj.template_grp
-	
-	if comp_obj.template_data:
-		full_name = '_'.join([ctr_side, ctr_name, 'CTR'])
-		data['position'] =  comp_obj.template_data[full_name]['transform']
+	@dependency_graph.travel_graph
+	def build_controls(self, graph_node, template = False):
+		""" Using the component data, builds a controler
+		Private function, can't be accesed outside of component.py 
+		Uses the @travel_graph decorator to create all the controlers of the given
+		component 
+		TODO: Should/could this be a method instead of a function?
+		"""
+		data = self.component_ctrls_data[str(graph_node)]
 		
-	#Creating the controler
-	new_ctr = controls.Control(**data)
-	#Dynamically adding the new ctr as an attribute for the component
-	setattr(comp_obj, '{}_ctr'.format(ctr_name), new_ctr)
-	comp_obj.ctrls[str(graph_node)] = new_ctr
+		#Data provided by default at 'add_component_controler' method
+		ctr_name = data['name']
+		ctr_side = data['side']
 
-	#Creating optional driven joint
-	if create_jnt:
-		#Get jnt name
-		jnt_name = ctr_name
-		if 'CTR' == ctr_name.split('_')[-1]:
-			jnt_name = ctr_name[:-4]
+		#Check if ctrl needs a joint to constrain
+		create_jnt = False
+		if 'add_joint' in data.keys():
+			if data['add_joint']:
+				create_jnt = True
+				joint_connection = data['add_joint']
+			del(data['add_joint']) #Remove joint from data to avoid argument error
+
+		#Template stage specific behavior
+		if template:
+			data['parent'] = self.template_grp
 		
-		#Create new joint
-		new_jnt = joints.Joint(
-			name = jnt_name,
-			parent = comp_obj.skeleton_grp,
-			match_object = new_ctr
-		)
-		#Dynamically adding the new joint as an attribute for the component
-		setattr(comp_obj, '{}_jnt'.format(jnt_name), new_jnt)
-		if joint_connection in ['parentConstraint', 'follow']:
-			new_ctr.constrain(new_jnt,'parent', mo = 0)
-		if joint_connection == 'follow':
-			new_ctr.constrain(new_jnt,'scale', mo = 0)
-		if joint_connection == 'add':
-			pass #Nothing happenss, joint is open for future connections
+		if self.template_data:
+			full_name = '_'.join([ctr_side, ctr_name, 'CTR'])
+			data['position'] =  self.template_data[full_name]['transform']
+			
+		#Creating the controler
+		new_ctr = controls.Control(**data)
+		#Dynamically adding the new ctr as an attribute for the component
+		setattr(self, '{}_ctr'.format(ctr_name), new_ctr)
+		self.ctrls[str(graph_node)] = new_ctr
+
+		#Creating optional driven joint
+		if create_jnt:
+			#Get jnt name
+			jnt_name = ctr_name
+			if 'CTR' == ctr_name.split('_')[-1]:
+				jnt_name = ctr_name[:-4]
+			
+			#Create new joint
+			new_jnt = joints.Joint(
+				name = jnt_name,
+				parent = self.skeleton_grp,
+				match_object = new_ctr
+			)
+			#Dynamically adding the new joint as an attribute for the component
+			setattr(self, '{}_jnt'.format(jnt_name), new_jnt)
+			if joint_connection in ['parentConstraint', 'follow']:
+				new_ctr.constrain(new_jnt,'parent', mo = 0)
+			if joint_connection == 'follow':
+				new_ctr.constrain(new_jnt,'scale', mo = 0)
+			if joint_connection == 'add':
+				pass #Nothing happenss, joint is open for future connections
