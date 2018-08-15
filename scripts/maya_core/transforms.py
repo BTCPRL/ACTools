@@ -120,7 +120,7 @@ class Transform(nodes.Node):
 				mo = mo,
 				**kwargs
 			)
-			if hasattr(t, constraints):
+			if hasattr(t, 'constraints'):
 				t.constraints.append(new_constraint)
 
 		return new_constraint
