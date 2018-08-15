@@ -11,10 +11,9 @@ import maya.cmds as cmds
 #CARF imports
 from CARF.data import global_data as g_data
 
-from CARF.scripts import session
+# from CARF.scripts import session
 from CARF.scripts.maya_core import maya_files
 from CARF.scripts.maya_core import controls
-reload(maya_files)
 
 class Builder(object):
 	""" 

@@ -1,7 +1,7 @@
 from CARF.scripts.components import component
 from CARF.scripts.maya_core import controls
 from CARF.scripts.maya_core import transforms as trans
-reload(component)
+
 class Cog(component.Component):
 	"""Cog component
 	"""

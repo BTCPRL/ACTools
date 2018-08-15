@@ -7,7 +7,7 @@ from CARF.scripts.maya_core import maya_files
 
 #Global data import
 from CARF.data import global_data as g_data
-reload(g_data)
+
 class Session(object):
 	"""
 	Session class.
