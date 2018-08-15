@@ -10,17 +10,17 @@ class Prop(rig.Rig):
 				'name': 'cog',
 				'side': 'M',
 				'type' : 'cog',
-				'driver': 'M_root.M_root_CTR',
-				'scale_driver': 'M_root.M_root_CTR'
+				'driver': 'M_root.M_root_JNT',
+				'scale_driver': 'M_root.M_root_JNT'
 			}
 		)
 
 	def build(self):
-		self.cog.cog_jnt.constrain(
+		self.cog.m_cog_jnt.constrain(
             target = self.builder.geo_grp,
             constraint_type = 'parent'
         )
-		self.cog.cog_jnt.constrain(
+		self.cog.m_cog_jnt.constrain(
             target = self.builder.geo_grp,
             constraint_type = 'scale'
         )

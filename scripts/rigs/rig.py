@@ -78,6 +78,7 @@ class Rig(object):
 		)
 		component_class = getattr(component_module, component_type.capitalize())
 		component_obj = component_class(common_args, component_args)
+		component_obj.add_ctrls_data()
 
 		return component_obj
 	

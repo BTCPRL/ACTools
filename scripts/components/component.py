@@ -44,12 +44,17 @@ class Component(object):
 		self.template_data = None
 		self.ctrls = {}
 		self.transforms = []
+		self.main_driver = None
 
 		self.ctrls_grp = '%s_ctrls_GRP' % self.name
 		self.setup_grp = '%s_setup_GRP' % self.name
 		self.skeleton_grp = '%s_skeleton_GRP' % self.name
 		self.driver_grp = '%s_driver_GRP' % self.name
-		self.add_ctrls_data()
+		self.output_grp = '%s_output_GRP' % self.name
+		#NOTE: Thinking about not having this in the init of component, but 
+		# instead having it called after initializing the component. This way,
+		# all component  arguments get loaded before adding the ctrl data
+		# self.add_ctrls_data()
 
 	def __str__(self):
 		return self.name
@@ -59,7 +64,19 @@ class Component(object):
 		pass
 	
 	def create_component_base(self):
-		"""TODO: Docstring
+		"""Creates common groups for all components
+		
+		These groups are provided as a mean to organize the different elements
+		of every component.
+
+		Each component's base hierarchy:
+			CONTROLS_GRP
+				[name]_ctrls_GRP
+			SETUP_GRP
+				[name]_setup_GRP
+					[name]_driver_GRP
+					[name]_output_GRP
+					[name]_skeleton_GRP
 		"""
 		self.ctrls_grp = trans.Transform(
 			name = '%s_ctrls_GRP' % self.name,
@@ -71,9 +88,19 @@ class Component(object):
 			parent = 'SETUP_GRP'
 		)
 		
+		self.driver_grp = trans.Transform(
+			name = '%s_driver_GRP' % self.name,
+			parent = self.setup_grp
+		)
+		
+		self.output_grp = trans.Transform(
+			name = '%s_output_GRP' % self.name,
+			parent = self.setup_grp
+		)
+
 		self.skeleton_grp = trans.Transform(
 			name = '%s_skeleton_GRP' % self.name,
-			parent = 'SKELETON_GRP'
+			parent = self.setup_grp
 		)
 
 	def add_component_controler(self, ctr_data):
@@ -92,10 +119,12 @@ class Component(object):
 					parent (string) :  parent node. Default is self.ctrls_grp
 					size (double) : Scale value for controler's shape. 
 									Default is 1
-					zero (bool) : Add a group above the controller. 
+					add_zero (bool) : Add a group above the controller. 
 									Default is True
-					space (bool) : Add a second group above the controller. 
+					add_space (bool) : Add a second group above the controller. 
 									Default is True	
+					add_joint (str): If a joint is needed, how will this 
+									 joint follow the control?
 		"""
 		
 		#Validation
@@ -119,43 +148,54 @@ class Component(object):
 		self.component_ctrls_data[ctr_name] = ctr_data
 
 	def setup_driver(self):
-		""" Constrains component ctrl grp to component's driver
-		Creates a new grp that will be the driving point for the component
+		""" Connects each of the component's drivers to their respective master
+
+		Each individual component is then responsible for connecting their own
+		driver (or drivers) to all the elements that need to be driven
+
+		TODO: Decide on whether or not to support the Dictionary option
+		NOTE: Only the String option is supported for now
+		self.driver_target can be a String or a Dictionary:
+			In the first case, a single transform is created using
+				the name "[name]_main_driver_GRP". 
+			In the second case, each key in the dictionary must be a string 
+				that will be used as a name for a new transform, which will 
+				then be connected to it's respective value in the dictionary
 		"""
 		if self.driver_target:
-			# if not cmds.objExist(self.driver_target):
-			# 	raise Exception("###Error: Can't assing driver, node not found in"\
-			# 	" current scene: {} ".format(self.driver_target))
-			self.driver_grp = trans.Transform(
-				name = '%s_driver_GRP' % self.name,
-				parent = self.setup_grp
+			
+			self.main_driver = trans.Transform(
+				name = '%s_main_driver_GRP' % self.name,
+				parent = self.driver_grp
 			)
-			self.driver_grp.constrain_to(
+			self.main_driver.constrain_to(
 				self.driver_target, 
 				'parent',  
 				mo = False
 			)
+			# TODO: move this to each component... or not?
 			self.driver_grp.constrain(self.ctrls_grp, 'parent')
 		
 		if self.scale_driver_target:
 			if self.scale_driver_target == self.driver_target:
-				self.driver_grp.constrain_to(
+				self.main_driver.constrain_to(
 					self.driver_target,
 					'scale',
 					mo = True
 				)
-				self.driver_grp.constrain(self.ctrls_grp, 'scale')
+				self.main_scale_driver = self.main_driver
 			else:
-				self.scale_driver_grp = trans.Transform(
-					name = '%s_scale_driver_GRP' % self.name,
-					parent = self.setup_grp
+				self.main_scale_driver = trans.Transform(
+					name = '%s_main_scale_driver_GRP' % self.name,
+					parent = self.driver_grp
 				)
-				self.scale_driver_grp.constrain_to(
+				self.main_scale_driver.constrain_to(
 					self.scale_driver_target, 
 					'parent',  
 					mo = False
 				)
-				self.scale_driver_grp.constrain(self.ctrls_grp, 'scale')
+			# TODO: move this to each component... or not?
+			self.main_scale_driver.constrain(self.ctrls_grp, 'scale')
 
 	def build_template(self, template_data = None):
 		"""
@@ -168,10 +208,14 @@ class Component(object):
 			parent = 'TEMPLATE_GRP'
 		)
 		self.build_controls(self.hierarchy_graph.root_node, template = True)
+		self.solve(template=True)
 
 	def build_component(self):
+		"""
+		"""
 		self.create_component_base()
 		self.build_controls(self.hierarchy_graph.root_node)
+		self.solve()
 			
 	def solve(self, template=False): 
 		"""Adds the logic to the component
@@ -237,13 +281,14 @@ class Component(object):
 		#Creating the controler
 		new_ctr = controls.Control(**data)
 		#Dynamically adding the new ctr as an attribute for the component
-		setattr(self, '{}_ctr'.format(ctr_name), new_ctr)
+		ctr_attr_name = '{}_{}_ctr'.format(ctr_side, ctr_name).lower()
+		setattr(self, ctr_attr_name, new_ctr)
 		self.ctrls[str(graph_node)] = new_ctr
 
 		#Creating optional driven joint
 		if create_jnt:
 			#Get jnt name
-			jnt_name = ctr_name
+			jnt_name = '{}_{}'.format(ctr_side, ctr_name)
 			if 'CTR' == ctr_name.split('_')[-1]:
 				jnt_name = ctr_name[:-4]
 			
@@ -253,8 +298,10 @@ class Component(object):
 				parent = self.skeleton_grp,
 				match_object = new_ctr
 			)
+			
 			#Dynamically adding the new joint as an attribute for the component
-			setattr(self, '{}_jnt'.format(jnt_name), new_jnt)
+			jnt_attr_name = '{}_jnt'.format(jnt_name).lower()
+			setattr(self, jnt_attr_name, new_jnt)
 			if joint_connection in ['parentConstraint', 'follow']:
 				new_ctr.constrain(new_jnt,'parent', mo = 0)
 			if joint_connection == 'follow':
