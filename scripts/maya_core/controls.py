@@ -63,7 +63,11 @@ class Control(trans.Transform):
 			
 			#Points are multiplied by size
 			point_data = shapes_data[curve_data]['points']
-			curve_points = [p*self.size for p in point_data]
+			curve_points = []
+			for each_point in point_data:
+				sized_p = [p*self.size for p in each_point]
+				curve_points.append(sized_p)
+			# curve_points = [p*self.size for p in point_data]
 			
 			#Create curve in maya
 			temp_curve = pm.curve(name = self.name, degree = curve_degree, 
