@@ -14,15 +14,17 @@ reload(trans)
 class Control(trans.Transform):
 	"""docstring for Control"""
 	def __init__(self, name, shape, color=None, size=1, side= g_data.center, 
-		add_zero=True, add_space=True, parent=None, position=[0,0,0,0,0,0],
-		match_object=False, template_ctr=False):
+		ctr_type = 'main', tweak_ctrls = 0, add_zero=True, add_space=True, parent=None, 
+		position=[0,0,0,0,0,0], match_object=False):
 
-		#Empty attributes for clarity of mind
+		# Default attributes
 		self.shapes = []
 		self.size = size
-		ctr_name = name 
+		self.ctr_type = ctr_type
+		self.last_ctr = self
 		
 		#CBB remove this? have it NOT allow for preffix in name?
+		ctr_name = name 
 		if not name.split('_')[-1] == '_CTR':
 			ctr_name = '%s_CTR' % ctr_name
 
@@ -31,18 +33,43 @@ class Control(trans.Transform):
 			position = position, node_type = 'control', 
 			match_object = match_object)
 
-		#Create shape
-		if template_ctr:
+		#Template modifiers
+		if ctr_type == 'template':
 			shape = 'cube'
+		
+		#Create shape
 		self.create_ctr_shape(shape)
 
 		#Add color to shape
 		if color:
-			self.set_color(color = color)
-		elif template_ctr:
-			self.set_color(color = g_data.template_sides_color[side])
+			ctr_color = color
+		elif self.ctr_type in ['secondary','tweak', 'template']:
+			ctr_color = g_data.template_sides_color[side]
 		else:
-			self.set_color(color = g_data.sides_color[side])
+			ctr_color = g_data.sides_color[side]
+		
+		self.set_color(color = ctr_color)
+		
+		# Adding tweak ctrls
+		if ctr_type != 'template':
+			tweak_name = '{}_tweak'.format(name)
+			for i in range(tweak_ctrls):
+				if i:
+					tweak_name = '{}_tweak_{}'.format(name, i)
+				tweak_ctrl = Control(
+					name = tweak_name, 
+					side = side,
+					shape = shape,
+					size = 1 - ((i+1)/10.00),
+					color = color,
+					add_space = False, 
+					add_zero = False,
+					ctr_type = 'tweak',
+					parent = self.last_ctr,
+					match_object = self
+				)
+				self.last_ctr = tweak_ctrl
+
 
 	def create_ctr_shape(self, shape):
 		""" Creates curve shape and parents it under ctr transform
