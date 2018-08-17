@@ -26,10 +26,10 @@ class Root(component.Component):
 			raise Exception('Please provide an asset_name')
 		
 		# Private attributes
-		self._last_ctr = None
-		self._root_jnt = 'M_root_JNT'
+		# self._last_ctr = None
+		
 		# Default values
-		self.local_ctrls = 3
+		self.local_ctrls = 1
 
 		# List of arguments that can be set by the user
 		setteable_component_args = [
@@ -53,38 +53,48 @@ class Root(component.Component):
 			}
 		)
 
-		sub_ctrl_size = 1
-		size_decrement = 1 / float(self.local_ctrls + 1)
+		self.add_component_controler(
+			ctr_data = {
+				'name':'local',
+				'side':'M',
+				'size': 0.8,
+				'color':'dark_yellow',
+				'shape':'arrow',
+				'parent':'M_root_CTR',
+				'tweak_ctrls': self.local_ctrls
+			}
+		)
+		# sub_ctrl_size = 1
+		# size_decrement = 1 / float(self.local_ctrls + 1)
 
-		last_ctr = 'M_root_CTR'
-		for i in range(self.local_ctrls):
-			ctrl_number = '' if not i else '_{}'.format(i+1)
-			ctr_name = 'local{}'.format(ctrl_number)
-			self.add_component_controler(
-				ctr_data = {
-					'name': ctr_name,
-					'side': 'M',
-					'color': 'dark_yellow',
-					'shape': 'arrow',
-					'size': sub_ctrl_size,
-					'add_zero': False,
-					'add_space': False,
-					'parent': last_ctr,
-				}
-			)
-			sub_full_name = 'M_{}_CTR'.format(ctr_name)
-			last_ctr = sub_full_name
-			sub_ctrl_size-= size_decrement
+		# last_ctr = 'M_root_CTR'
+		# for i in range(self.local_ctrls):
+		# 	ctrl_number = '' if not i else '_{}'.format(i+1)
+		# 	ctr_name = 'local{}'.format(ctrl_number)
+		# 	self.add_component_controler(
+		# 		ctr_data = {
+		# 			'name': ctr_name,
+		# 			'side': 'M',
+		# 			'color': 'dark_yellow',
+		# 			'shape': 'arrow',
+		# 			'size': sub_ctrl_size,
+		# 			'add_zero': False,
+		# 			'add_space': False,
+		# 			'parent': last_ctr,
+		# 		}
+		# 	)
+		# 	sub_full_name = 'M_{}_CTR'.format(ctr_name)
+		# 	last_ctr = sub_full_name
+		# 	sub_ctrl_size-= size_decrement
 
-		self._last_ctr = last_ctr
+		# self._last_ctr = last_ctr
 	
 	def solve(self):
 		""" Will constraint the root jnt to the last ctrl
 		"""
-		last_ctr_obj = getattr(self, self._last_ctr.lower())
-		last_ctr_obj.constrain(self._root_jnt, 'parent')
-		last_ctr_obj.constrain(self._root_jnt, 'scale')
-
+		last_ctr_obj = self.m_local_ctr.last_ctr
+		last_ctr_obj.constrain(self.m_root_jnt, 'parent')
+		last_ctr_obj.constrain(self.m_root_jnt, 'scale')
 
 	# def create_template_grps(self):
 	# 	"""	Creates top group where template controls will be parented under
@@ -115,6 +125,9 @@ class Root(component.Component):
 		"""
 		root_template_data = {
 			'M_root_CTR':{
+				'transform':[0,0,0,0,0,0]
+			},
+			'M_local_CTR':{
 				'transform':[0,0,0,0,0,0]
 			}
 		}
