@@ -29,9 +29,9 @@ class Component(object):
 				#Scale drivers also need to be extracted
 				if 'scale_driver' in common_args.keys():
 					self.scale_driver_target =\
-									   common_args['scale_driver'].split('.')[1]
+									common_args['scale_driver'].split('.')[1]
 					self.scale_driver_component =\
-									   common_args['scale_driver'].split('.')[0]
+									common_args['scale_driver'].split('.')[0]
 			except IndexError:
 				raise IndexError("Drivers must be defined using the"\
 						" component name and the node name separated by '.'\n"\
@@ -60,7 +60,7 @@ class Component(object):
 		return self.name
 
 	def add_ctrls_data(self):
-		"""Needs(?) to be overwritten by inheriting classes"""
+		"""Needed(?) to be overwritten by inheriting classes"""
 		pass
 	
 	def create_component_base(self):
@@ -165,7 +165,7 @@ class Component(object):
 		if self.driver_target:
 			
 			self.main_driver = trans.Transform(
-				name = '%s_main_driver_GRP' % self.name,
+				name = '%s_main_driver_XFORM' % self.name,
 				parent = self.driver_grp
 			)
 			self.main_driver.constrain_to(
@@ -173,8 +173,6 @@ class Component(object):
 				'parent',  
 				mo = False
 			)
-			# TODO: move this to each component... or not?
-			self.driver_grp.constrain(self.ctrls_grp, 'parent')
 		
 		if self.scale_driver_target:
 			if self.scale_driver_target == self.driver_target:
@@ -186,7 +184,7 @@ class Component(object):
 				self.main_scale_driver = self.main_driver
 			else:
 				self.main_scale_driver = trans.Transform(
-					name = '%s_main_scale_driver_GRP' % self.name,
+					name = '%s_main_scale_driver_XFORM' % self.name,
 					parent = self.driver_grp
 				)
 				self.main_scale_driver.constrain_to(
@@ -194,8 +192,6 @@ class Component(object):
 					'parent',  
 					mo = False
 				)
-			# TODO: move this to each component... or not?
-			self.main_scale_driver.constrain(self.ctrls_grp, 'scale')
 
 	def build_template(self, template_data = None):
 		"""
@@ -270,11 +266,20 @@ class Component(object):
 				joint_connection = data['add_joint']
 			del(data['add_joint']) #Remove joint from data to avoid argument error
 
-		#Template stage specific behavior
+		#Validating template data
 		if template:
+			#Template stage specific behavior
 			data['parent'] = self.template_grp
+			data['ctr_type'] = 'template'
+			
+			if self.template_data:
+				full_name = '_'.join([ctr_side, ctr_name, 'CTR'])
+				data['position'] =  self.template_data[full_name]['transform']
 		
-		if self.template_data:
+		elif not self.template_data:
+			raise Exception('No template data found for {}'.format(graph_node))
+		
+		else:
 			full_name = '_'.join([ctr_side, ctr_name, 'CTR'])
 			data['position'] =  self.template_data[full_name]['transform']
 			
