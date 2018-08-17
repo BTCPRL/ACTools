@@ -26,7 +26,7 @@ class Root(component.Component):
 			raise Exception('Please provide an asset_name')
 		
 		# Private attributes
-		# self._last_ctr = None
+		self.template_data = self.get_template_data()
 		
 		# Default values
 		self.local_ctrls = 1
