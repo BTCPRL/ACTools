@@ -56,7 +56,7 @@ class Cog(component.Component):
 		if self.scale_constrained:
 			self.main_driver.constrain(ctrl_top_node, 'scale', mo = True)
 
-	def solve(self):
+	def solve(self, template = False):
 		""" Connects ctrl to output transform
 		"""
 		out_driver = self.ctrls[self.ctr_full_name].last_ctr
