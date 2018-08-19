@@ -308,8 +308,8 @@ class Component(object):
 			jnt_attr_name = '{}_jnt'.format(jnt_name).lower()
 			setattr(self, jnt_attr_name, new_jnt)
 			if joint_connection in ['parentConstraint', 'follow']:
-				new_ctr.constrain(new_jnt,'parent', mo = 0)
+				new_ctr.last_ctr.constrain(new_jnt,'parent', mo = 0)
 			if joint_connection == 'follow':
-				new_ctr.constrain(new_jnt,'scale', mo = 0)
+				new_ctr.last_ctr.constrain(new_jnt,'scale', mo = 0)
 			if joint_connection == 'add':
 				pass #Nothing happenss, joint is open for future connections
