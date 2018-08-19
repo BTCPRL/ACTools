@@ -27,9 +27,11 @@ class Root(component.Component):
 		
 		# Private attributes
 		self.template_data = self.get_template_data()
+		self._output_name = '{}_out_XFORM'.format(self.name)
 		
 		# Default values
 		self.local_ctrls = 1
+		self.output_xform = None
 
 		# List of arguments that can be set by the user
 		setteable_component_args = [
@@ -93,8 +95,21 @@ class Root(component.Component):
 		""" Will constraint the root jnt to the last ctrl
 		"""
 		last_ctr_obj = self.m_local_ctr.last_ctr
+
+		# Constrain skeleton
 		last_ctr_obj.constrain(self.m_root_jnt, 'parent')
 		last_ctr_obj.constrain(self.m_root_jnt, 'scale')
+
+		# Create and constrain transforms output
+		self.output_xform = trans.Transform(
+			name = self._output_name,
+			side = self.side,
+			parent = self.output_grp
+		)
+
+		last_ctr_obj.constrain(self.output_xform, 'parent', mo = False)
+		last_ctr_obj.constrain(self.output_xform, 'scale', mo = False)
+
 
 	# def create_template_grps(self):
 	# 	"""	Creates top group where template controls will be parented under
