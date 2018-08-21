@@ -51,7 +51,7 @@ class Static(component.Component):
                 'side':self.side,
                 'shape':self.ctr_shape,
                 'size':self.ctr_size,
-                'position':[0,0,0,0,0,0],
+                'position':self.position,
                 'parent':self.ctrls_grp,
                 'tweak_ctrls':self.tweak_ctrls,
                 'add_joint': self.add_joint

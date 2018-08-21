@@ -6,7 +6,9 @@ from CARF.scripts.maya_core import transforms as trans
 class Component(object):
 	"""docstring for Component"""
 	def __init__(self, common_args):
-		
+		""" TODO: lay out which component arguments are required and which ones
+		are optional
+		"""
 		if not ('name' in common_args) and ('side' in common_args):
 			raise Exception('Please provide name and side')
 		if not 'type' in common_args:
@@ -14,12 +16,17 @@ class Component(object):
 		if 'driver' not in common_args and (common_args['type'] != 'root'):
 			raise Exception('Please provide a driver')
 		
-		#Empty attributes
+		#Component common attributes
 		self.side = common_args['side']
 		self.name = '%s_%s' % (self.side,common_args['name'])
+		self.position = [0,0,0,0,0,0]
 		self.driver_target = False
 		self.scale_driver_target = False
 
+		#Getting user input
+		if 'position' in common_args.keys():
+			self.position = common_args['position']
+			
 		#Adding the drivers
 		#Drivers come defined as component.node we need to split this data
 		if common_args['type'] != 'root':
@@ -51,10 +58,7 @@ class Component(object):
 		self.skeleton_grp = '%s_skeleton_GRP' % self.name
 		self.driver_grp = '%s_driver_GRP' % self.name
 		self.output_grp = '%s_output_GRP' % self.name
-		#NOTE: Thinking about not having this in the init of component, but 
-		# instead having it called after initializing the component. This way,
-		# all component  arguments get loaded before adding the ctrl data
-		# self.add_ctrls_data()
+
 
 	def __str__(self):
 		return self.name
