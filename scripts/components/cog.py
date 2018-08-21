@@ -1,8 +1,8 @@
-from CARF.scripts.components import component
+from CARF.scripts.components import static
 from CARF.scripts.maya_core import controls
 from CARF.scripts.maya_core import transforms as trans
 
-class Cog(component.Component):
+class Cog(static.Static):
 	"""Cog component
 	Has one ctrl, which could have tweak ctrls
 	"""
@@ -12,63 +12,11 @@ class Cog(component.Component):
 		# Private attributes
 		self._output_name = '{}_out_XFORM'.format(self.name)
 
-		# Default values
-		self.scale_constrained = True
-		self.output_xform = None
+		# Default COG values
+		self.ctr_shape = 'arrow_cross'
 
-		# Getting user input
-		self.ctrl_name = common_args['name']
-		self.ctr_full_name = '_'.join([self.side, self.ctrl_name, 'CTR'])
-
-		# List of arguments that can be set by the user
-		setteable_component_args = [
-			'scale_constrained'
-		]
-
-		# Getting component args
-		for arg in component_args.keys():
-			if arg in setteable_component_args:
-				setattr(self, arg, component_args[arg])
-
+		if 'tweak_ctrls' not in component_args:
+			self.tweak_ctrls = 1
 		
-	def add_ctrls_data(self):
-		self.add_component_controler(
-			ctr_data = {
-				'name':self.ctrl_name,
-				'side':self.side,
-				'shape':'arrow_cross',
-				'position':[0,25,0,0,0,0],
-				'parent':self.ctrls_grp,
-				'add_joint':'follow'
-			}
-		)
-
-	def setup_driver(self):
-		""" Single ctrl driven by main driver
-		Uses parent and scale constraint to drive it
-		"""
-		super(Cog, self).setup_driver()
-
-		ctrl_top_node = self.ctrls[self.ctr_full_name].top_node
-
-		self.main_driver.constrain(ctrl_top_node, 'parent', mo = True)
-		
-		if self.scale_constrained:
-			self.main_driver.constrain(ctrl_top_node, 'scale', mo = True)
-
-	def solve(self, template = False):
-		""" Connects ctrl to output transform
-		"""
-		out_driver = self.ctrls[self.ctr_full_name].last_ctr
-
-		self.output_xform = trans.Transform(
-			name = self._output_name,
-			side = self.side,
-			parent = self.output_grp,
-			match_object = out_driver
-		)
-		
-		out_driver.constrain(self.output_xform, 'parent')
-		
-		if self.scale_constrained:
-			out_driver.constrain(self.output_xform, 'scale')
+		if 'position' not in common_args:
+			self.position = [0,20,0,0,0,0]
