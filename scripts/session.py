@@ -33,6 +33,12 @@ class Session(object):
 		self.user_path = os.path.join(g_data.users_root, self.user_name)
 		self.paths = dict(Session.fixed_paths)
 
+		# Set up backups directory
+		self.user_backups_path = os.path.join(self.user_path, 
+											  '__assets_backups__')
+		if not os.path.isdir(self.user_backups_path):
+			create_folder(self.user_backups_path)
+
 		#Empty attributes for clarity of mind
 		self.project_name = None
 		self.project_path = None
@@ -104,12 +110,18 @@ class Session(object):
 				self.create_directory_tree(folder_path, 
 					folders_dictionary[folder])
 
-	def set_asset(self, asset_name, asset_type, rig_type):
+	def set_asset(self, asset_name, asset_type, rig_type, checkout = False):
 		"""Creates all the required folders for an asset build
 		"""
 		if not self.project_set :
 			raise Exception('Project data not found. Please set project before'\
 			' setting the asset')
+
+		# Instead of creating the folders, optionally we can check out latest
+		# checked in data
+		if checkout:
+			self.check_out_asset()
+			return False
 
 		#Validation of arguments
 		if not (type(asset_name) is str or type (asset_type) is str):
@@ -117,32 +129,32 @@ class Session(object):
 		elif rig_type not in g_data.supported_rig_types:
 			raise Exception('%s is not an supported rig type. Supported '\
 			'types are: %s' % (rig_type, g_data.supported_rig_types))
-		else:
-			#Set geo path
-			self.paths['geo'] = os.path.join(self.paths['final'], 
-				asset_type, asset_name, 'Geo', '%s.ma' % asset_name)
-			#Setting the asset data
-			self.asset_name = asset_name
-			self.asset_type = asset_type
-			asset_path = os.path.join(self.user_path, asset_name)
+		
+		#Set geo path
+		self.paths['geo'] = os.path.join(self.paths['final'], 
+			asset_type, asset_name, 'Geo', '%s.ma' % asset_name)
+		#Setting the asset data
+		self.asset_name = asset_name
+		self.asset_type = asset_type
+		asset_path = os.path.join(self.user_path, asset_name)
 
-			#Check for asset folder
-			create_folder(asset_path)
-			self.create_directory_tree(asset_path, g_data.asset_dev_folders)
-			
-			self.paths['asset'] = asset_path
-			#Add asset dev folders to paths
-			for folder in g_data.asset_dev_folders:
-				f_path = os.path.join(self.paths['asset'], folder)
-				self.paths[folder] = f_path
-			
-			#Check for asset_build.py
-			build_path = os.path.join(asset_path, 
-				'%s_build.py' % self.asset_name)
-			if not os.path.isfile(build_path):
-				self.create_build_file(build_path, rig_type)
-			self.paths['build'] = build_path
-			self.asset_set = True
+		#Check for asset folder
+		create_folder(asset_path)
+		self.create_directory_tree(asset_path, g_data.asset_dev_folders)
+		
+		self.paths['asset'] = asset_path
+		#Add asset dev folders to paths
+		for folder in g_data.asset_dev_folders:
+			f_path = os.path.join(self.paths['asset'], folder)
+			self.paths[folder] = f_path
+		
+		#Check for asset_build.py
+		build_path = os.path.join(asset_path, 
+			'%s_build.py' % self.asset_name)
+		if not os.path.isfile(build_path):
+			self.create_build_file(build_path, rig_type)
+		self.paths['build'] = build_path
+		self.asset_set = True
 		
 	def check_in_asset(self):
 		"""Saves the current asset dev folders into the checkins directory.
@@ -165,10 +177,79 @@ class Session(object):
 
 		#Copies the asset development folders into the new version checkin
 		shutil.copytree(self.paths['asset'], version_path)
+	
+	def check_out_asset(self):
+		""" Looks for the latest asset directory in the Checkins folder, then
+		makes a local copy into the current's user Asset Dev
+
+		If There is an existing asset directory in the users dev area, then it
+		moves the current directory into the Stash folder, then checks out the
+		latest asset directory
+		"""
+		if not self.asset_set:
+			raise Exception('Asset data not set. Unable to check-out the data')
+		
+		#Gathering the latest checked data
+		checkin_path = os.path.join(self.paths['checkin'], self.asset_type,
+			self.asset_name)
+		
+		if not os.path.isdir(checkin_path):
+			raise Exception(
+				'Unable to check out data: '\
+				'No checked in data found for {}'.format(self.asset_name)
+			)
+		if not len(os.listdir(checkin_path)):
+			raise Exception(
+				'Unable to check out data: '\
+				'Check in directory for {} is empty, no data to copy from'\
+				.format(self.asset_name)
+			)
+		
+		versions = [int(x) for x in os.listdir(checkin_path)]
+		latest_version = max(versions)
+		latest_checked_data = os.path.join(checkin_path, 
+										   str(latest_version).zfill(3))
+
+		#User Asset dev
+		user_asset_path = self.paths['asset']
+
+		# If user data is present, back it up and then remove it
+		if os.path.isdir(user_asset_path):
+			self.backup_user_asset_data()
+			shutil.rmtree(user_asset_path)
+		
+		#Copies from latest into user dev folder
+		shutil.copytree(latest_checked_data, user_asset_path)
+		
+
+	def backup_user_asset_data(self):
+		""" Makes a copy of the user's current asset data in the 
+		__assets_backups__ folder
+
+		It saves each new backup with a bigger increment suffix. 
+		TODO: implement the following... 
+		if the amount of backups is the same as the maximum number of backups 
+		specified in global_data, delete the oldest
+		"""
+		#Look for the next backup increment and use it as the directory name
+		next_backup = len(os.listdir(self.user_backups_path)) + 1
+		backup_name = '_'.join([self.asset_name, str(next_backup).zfill(3)])
+		backup_path = os.path.join(self.user_backups_path, backup_name)
+
+		#Create the backup
+		user_asset_path = self.paths['asset']
+		shutil.copytree(user_asset_path, backup_path)
 
 	def publish_asset(self):
-		"""Description
+		"""Checks in the asset, then saves the current maya file into the
+		publish folder. 
+		
+		If there is an existing publish, it will add it to the archive as an
+		increment.
 		"""
+		
+		self.check_in_asset()
+
 		#Check and creates the asset directory in the final drive
 		final_path = os.path.join(self.paths['final'], self.asset_type,
 			self.asset_name)
