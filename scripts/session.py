@@ -1,12 +1,20 @@
-#Sys imports
+# Sys imports
 import os
 import shutil
 
-#Module imports
+# Module imports
 from CARF.scripts.maya_core import maya_files
 
-#Global data import
+# Global data import
 from CARF.data import global_data as g_data
+
+# Global constants
+__fixed_paths__ = {
+	'tools_scripts': os.path.dirname(__file__),
+	'source_build': os.path.join(os.path.dirname(__file__),'asset_build.py'),
+	'components': os.path.join(os.path.dirname(__file__),'components')
+}
+__existing_projects__ = os.listdir(g_data.productions_root)
 
 class Session(object):
 	"""
@@ -14,14 +22,6 @@ class Session(object):
 	Handles the directory information needed for each asset, opening of files
 	and publishing.
 	"""
-	fixed_paths = {
-		'tools_scripts': os.path.dirname(__file__),
-		'source_build': os.path.join(os.path.dirname(__file__),'asset_build.py'),
-		'components': os.path.join(os.path.dirname(__file__),'components')
-	}
-
-	dev_folders = ['template','weights','wip','scenes']
-	existing_projects = os.listdir(g_data.productions_root)
 	def __init__(self, user, project_name = None, asset_name=None, 
 			asset_type = None, rig_type = None):
 		"""
@@ -31,7 +31,7 @@ class Session(object):
 		
 		self.user_name = user
 		self.user_path = os.path.join(g_data.users_root, self.user_name)
-		self.paths = dict(Session.fixed_paths)
+		self.paths = dict(__fixed_paths__)
 
 		# Set up backups directory
 		self.user_backups_path = os.path.join(self.user_path, 
@@ -56,18 +56,21 @@ class Session(object):
 
 	def set_project(self, project_name):
 
-		if not project_name in Session.existing_projects:
-			raise Exception('%s is not an existing project, unable to set data'\
-			'. Please use create_project() to add a new project' % project_name)
+		if not project_name in __existing_projects__:
+			raise Exception(
+				'{} is not an existing project: unable to set data.\n'\
+				'Please use create_project() to add a new project'\
+				.format(project_name)
+			)
 		
 		self.project_name = project_name
 		self.project_path = os.path.join(g_data.productions_root, project_name)
 
 		###Hard coded for now, names come from g_data.project_folders
 		self.paths['checkin'] = os.path.join(self.project_path, 
-														'Checkins', 'Assets')
+											 'Checkins', 'Assets')
 		self.paths['final'] = os.path.join(self.project_path,
-														'Final', 'Assets')
+										   'Final', 'Assets')
 
 		#List of all assets under current project
 		self.project_assets = os.listdir(self.project_path)
@@ -93,7 +96,7 @@ class Session(object):
 
 		self.create_directory_tree(project_path, g_data.project_folders)
 
-		Session.existing_projects.append(project_name)
+		__existing_projects__.append(project_name)
 
 	def create_directory_tree(self,base_path, folders_dictionary):
 		"""Recursive method, it will create a directory tree in the given path
@@ -101,7 +104,7 @@ class Session(object):
 		Args:
 			base_path (os path) : path where to start creating directories
 			folders_dictionary (dict) : Dictionary representing the directory
-				tree. Check global_data.py for more info on folders dictionaries
+			tree. Check global_data.py for more info on folders dictionaries
 		"""
 		for folder in folders_dictionary:
 			folder_path = os.path.join(base_path, folder)
@@ -114,8 +117,8 @@ class Session(object):
 		"""Creates all the required folders for an asset build
 		"""
 		if not self.project_set :
-			raise Exception('Project data not found. Please set project before'\
-			' setting the asset')
+			raise Exception('Project data not found. Please set project'\
+							' before setting the asset')
 
 		# Instead of creating the folders, optionally we can check out latest
 		# checked in data
@@ -126,13 +129,18 @@ class Session(object):
 		#Validation of arguments
 		if not (type(asset_name) is str or type (asset_type) is str):
 			raise Exception("Asset name and type should be a string")
+		
 		elif rig_type not in g_data.supported_rig_types:
-			raise Exception('%s is not an supported rig type. Supported '\
-			'types are: %s' % (rig_type, g_data.supported_rig_types))
+			raise Exception(
+				'%s is not an supported rig type. Supported '\
+				'types are: %s' % (rig_type, g_data.supported_rig_types)
+			)
 		
 		#Set geo path
-		self.paths['geo'] = os.path.join(self.paths['final'], 
-			asset_type, asset_name, 'Geo', '%s.ma' % asset_name)
+		self.paths['geo'] = os.path.join(
+			self.paths['final'], asset_type, 
+			asset_name, 'Geo', '%s.ma' % asset_name
+		)
 		#Setting the asset data
 		self.asset_name = asset_name
 		self.asset_type = asset_type
@@ -149,10 +157,10 @@ class Session(object):
 			self.paths[folder] = f_path
 		
 		#Check for asset_build.py
-		build_path = os.path.join(asset_path, 
-			'%s_build.py' % self.asset_name)
+		build_path = os.path.join(asset_path, '%s_build.py' % self.asset_name)
 		if not os.path.isfile(build_path):
 			self.create_build_file(build_path, rig_type)
+		
 		self.paths['build'] = build_path
 		self.asset_set = True
 		
@@ -167,7 +175,7 @@ class Session(object):
 		
 		#Check and creates Chekins directory
 		checkin_path = os.path.join(self.paths['checkin'], self.asset_type,
-			self.asset_name)
+									self.asset_name)
 		create_folder(checkin_path)
 
 		#Get the next version number			
@@ -209,7 +217,6 @@ class Session(object):
 		latest_version = max(versions)
 		latest_checked_data = os.path.join(checkin_path, 
 										   str(latest_version).zfill(3))
-
 		#User Asset dev
 		user_asset_path = self.paths['asset']
 
@@ -220,7 +227,6 @@ class Session(object):
 		
 		#Copies from latest into user dev folder
 		shutil.copytree(latest_checked_data, user_asset_path)
-		
 
 	def backup_user_asset_data(self):
 		""" Makes a copy of the user's current asset data in the 
@@ -252,7 +258,7 @@ class Session(object):
 
 		#Check and creates the asset directory in the final drive
 		final_path = os.path.join(self.paths['final'], self.asset_type,
-			self.asset_name)
+								  self.asset_name)
 		create_folder(final_path)
 
 		rig_path = os.path.join(final_path, 'Rig')
