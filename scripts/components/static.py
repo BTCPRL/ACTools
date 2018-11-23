@@ -35,7 +35,7 @@ class Static(component.Component):
 
         # List of arguments that can be set by the user
         setteable_component_args = [
-            'scale_constrained', 'tweak_ctrls','add_joint',
+            'scale_constrained', 'tweak_ctrls','add_joint','ctr_shape'
         ]
 
         # Getting component args

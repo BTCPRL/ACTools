@@ -1,5 +1,7 @@
+import sys
 import imp 
 import os
+
 from CARF.scripts.maya_core import dependency_graph
 from CARF.scripts.maya_core import transforms as trans
 
@@ -71,28 +73,29 @@ class Rig(object):
 		component_type = common_args['type']
 		component_name = common_args['name']
 		#Dynamically imports and reload [component_type].py
-		component_module = imp.load_source(
-			'%s_module' % component_type,
-			os.path.join('D:/Dev/CARF/scripts/components','%s.py'\
-															   % component_type)
-		)
+		module_name = '%s_module' % component_type
+		if module_name not in sys.modules:
+			component_module = imp.load_source(
+				module_name,
+				os.path.join('D:/Dev/CARF/scripts/components','%s.py'\
+																% component_type)
+			)
+		else:
+			component_module = sys.modules[module_name]
+
 		component_class = getattr(component_module, component_type.capitalize())
 		component_obj = component_class(common_args, component_args)
 		component_obj.add_ctrls_data()
-
 		return component_obj
 	
 	def set_template_data(self, data):
 		""" Saves data into rig.template_data attribute
 		It also assigns each component it's own template data
 		"""
-		if data.keys() == self.components.keys():
-			print 'good template data'
-			self.template_data = data
-			for comp, comp_data in data.iteritems():
+		self.template_data = data
+		for comp, comp_data in data.iteritems():
+			if comp in self.components.keys():
 				self.components[comp].template_data = comp_data
-		else:
-			print 'nope', data
 		
 	def build_template(self):
 		'''Builds each component's template
@@ -123,8 +126,10 @@ class Rig(object):
 		if comp_name != 'M_root':
 			
 			self.components[comp_name].build_component()
+			print comp_name
 			self.components[comp_name].setup_driver()
-	
+			print 'done'
+
 	def build(self):
 		"""This method will be overwritten in each rig type
 		This definition is to avoid crashing for rig types without build method
@@ -145,7 +150,8 @@ class Rig(object):
 		for grp in self.base_grps:
 			grp_obj = getattr(self, grp)
 			if grp_obj in to_hide:
-				grp_obj.attr_set('v',0)
+				pass
+				# grp_obj.attr_set('v',0) #TODO: bring when settings ctrl added
 			grp_obj.attr_lock(['t','s','r','v'])
 		self.geo_grp.attr_set('overrideEnabled',1)
 		self.geo_grp.attr_set('overrideDisplayType',2)

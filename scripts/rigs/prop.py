@@ -1,5 +1,4 @@
 from CARF.scripts.rigs import rig
-reload(rig)
 class Prop(rig.Rig):
 	"""docstring for Prop"""
 	def __init__(self, builder, asset_name):
