@@ -7,9 +7,8 @@ from CARF.scripts.maya_core import transforms as trans
 
 class Rig(object):
 	"""docstring for Rig"""
-	def __init__(self, builder, asset_name):
+	def __init__(self, asset_name):
 
-		self.builder = builder
 		self.asset_name = asset_name
 
 		#Empty attributes for clarity of mind

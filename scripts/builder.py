@@ -26,7 +26,6 @@ class Builder(object):
 		self.session_obj = session_obj
 		self.build_file = '%s_build.py' % session_obj.asset_name
 		self.stage = 'init'
-		self.geo_grp = None
 		self.rig_base = False
 		self.template_data = None
 		#Dynamically imports and reload [asset_name]_build.py
@@ -84,7 +83,6 @@ class Builder(object):
 			
 			#Setting the parent
 			top_grp.setParent('GEO_GRP') 
-			self.geo_grp = top_grp
 		return new_nodes
 
 	def build_template(self):

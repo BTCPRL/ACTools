@@ -304,8 +304,7 @@ class Component(object):
 			)
 			
 			#Dynamically adding the new joint as an attribute for the component
-			jnt_attr_name = '{}_jnt'.format(jnt_name).lower()
-			setattr(self, jnt_attr_name, new_jnt)
+			setattr(self, new_jnt.full_name.lower(), new_jnt)
 
 			if joint_connection in ['parentConstraint', 'follow']:
 				new_ctr.last_ctr.constrain(new_jnt,'parent', mo = 0)

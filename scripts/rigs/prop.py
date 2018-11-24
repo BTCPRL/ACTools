@@ -1,8 +1,8 @@
 from CARF.scripts.rigs import rig
 class Prop(rig.Rig):
 	"""docstring for Prop"""
-	def __init__(self, builder, asset_name):
-		super(Prop, self).__init__(builder, asset_name)
+	def __init__(self, asset_name):
+		super(Prop, self).__init__(asset_name)
 		
 		self.cog = self.register(
 			common_args = {
@@ -16,10 +16,10 @@ class Prop(rig.Rig):
 
 	def build(self):
 		self.cog.m_cog_jnt.constrain(
-            target = self.builder.geo_grp,
+            target = self.geo_grp,
             constraint_type = 'parent'
         )
 		self.cog.m_cog_jnt.constrain(
-            target = self.builder.geo_grp,
+            target = self.geo_grp,
             constraint_type = 'scale'
         )
