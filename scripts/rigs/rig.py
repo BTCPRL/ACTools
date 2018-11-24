@@ -126,9 +126,7 @@ class Rig(object):
 		if comp_name != 'M_root':
 			
 			self.components[comp_name].build_component()
-			print comp_name
 			self.components[comp_name].setup_driver()
-			print 'done'
 
 	def build(self):
 		"""This method will be overwritten in each rig type

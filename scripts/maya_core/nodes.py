@@ -10,28 +10,27 @@ class Node(object):
 
 	Creates Node objects, storing the pymel object of the corresponding type
 	"""
-	def __init__(self, node_type, name='newNode', side=None):
+	def __init__(self, node_type, name, side=g_data.center):
 		
-		#Empty attributes for clarity of mind
-		self.added_attributes = {}
-		self.pm_node = None
-		self.name = None
+		#Node base attributes
 		self.side = side
-		self.node_type = node_type
+		self.name = name
+		self.node_type = None
+		self.full_name = None
+		self.pm_node = None
+		self.added_attributes = {}
 
-		node_name = name
-		prefix = node_name.split('_')[0]
-		
+		# node_name = name
+		# prefix = node_name.split('_')[0]
 
+		#side is None for ROOT and top level groups
 		if self.side:
 			if self.side not in g_data.positions_prefifx:
 				raise Exception('side has to be one of the following: '\
 					'%s' % g_data.positions_prefifx )
-			if not name.split('_')[0] == side:
-				node_name = '%s_%s' % (side, name)
 				
-		elif prefix in g_data.positions_prefifx:
-				self.side = prefix
+		# elif prefix in g_data.positions_prefifx:
+		# 		self.side = prefix
 		
 		#Supported types dictionary
 		#Format: {name: [suffix, maya type]}
@@ -51,10 +50,10 @@ class Node(object):
 			#Curve nodes
 			'nearestPointOnCurve':['_NPC','nearestPointOnCurve'],
 			'pointOnCurveInfo':['_POC','pointOnCurveInfo'],
-			#Dag nodes
-			'transform':['','transform'], #transforms get the suffix from name
-			'control':['', 'transform'], #Used by controls module
-			'joint':['_JNT','joint'],
+			#Dag nodes, they get the suffix from name
+			'transform':[None,'transform'], 
+			'control':[None, 'transform'], #Used by controls module
+			'joint':[None,'joint'],
 		}
 		#Auto detect nodes
 		auto_detect_nodes = {
@@ -64,16 +63,22 @@ class Node(object):
 		#Extract data from dictionary if possible
 		if node_type in supported_node_types.keys():
 			suffix = supported_node_types[node_type][0]
-			if not suffix in node_name:
-				node_name = '{}{}'.format(node_name, suffix)
 			maya_type = supported_node_types[node_type][1]
 			
 		else:
+			suffix = None
 			maya_type = node_type
 
 		#Create node
-		self.name = node_name
-		node = pm.createNode(maya_type, n = self.name)
+		node_name = name
+		if side:
+			node_name = '{}_{}'.format(side, node_name)
+		if suffix:
+			node_name = '{}_{}'.format(node_name, suffix)
+
+		self.full_name = node_name
+
+		node = pm.createNode(maya_type, n = self.full_name)
 
 		if maya_type in auto_detect_nodes:
 			attributes._set(node, 'operation', auto_detect_nodes[maya_type])
@@ -84,7 +89,7 @@ class Node(object):
 	# 	return self.name
 	
 	def __str__(self):
-		return self.name
+		return self.full_name
 
 	def set_pm_node(self, node):
 		if type (node) is list:
@@ -104,7 +109,7 @@ class Node(object):
 		min_value=None, max_value=None, hidden=False, keyable=True, **Kwargs):
 		""" Creates a new attribute """
 		attributes._add(self.pm_node, attr_name, attr_type, default_value, 
-								min_value, max_value, hidden, keyable, **Kwargs)
+						min_value, max_value, hidden, keyable, **Kwargs)
 
 	def attr_get(self, attr_name, **Kwargs):
 		"""Returns the attribute value"""
@@ -124,7 +129,8 @@ class Node(object):
 	
 	def attr_connect(self, attr_name, target, target_attr, f=False):
 		"""Connects given attribute with target"""
-		attributes._connect(self.pm_node, attr_name, target, target_attr, f = f)
+		attributes._connect(self.pm_node, attr_name, 
+							target, target_attr, f = f)
 
 	def attr_link(self, attr_name, target, f=False):
 		"""Links same attribute betwen targets"""
@@ -132,10 +138,10 @@ class Node(object):
 	
 	def attr_connectReverse(self, attr_name, target, target_attr, f=False):
 		"""Connects given attribute with target via reverse node"""
-		attributes._connectReverse(self.pm_node, attr_name, target, target_attr,
-																		  f = f)
+		attributes._connectReverse(self.pm_node, attr_name, 
+								   target, target_attr, f=f)
 
 	def attr_connectNegative(self, attr_name, target, target_attr, f=False):
 		"""Connects the negative value of the given attribute with target"""
-		attributes._connectNegative(self.pm_node, attr_name, target, 
-															 target_attr, f = f)
+		attributes._connectNegative(self.pm_node, attr_name, 
+									target, target_attr, f=f)

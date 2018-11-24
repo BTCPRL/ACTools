@@ -97,7 +97,7 @@ class Control(trans.Transform):
 			# curve_points = [p*self.size for p in point_data]
 			
 			#Create curve in maya
-			temp_curve = pm.curve(name = self.name, degree = curve_degree, 
+			temp_curve = pm.curve(name = self.full_name, degree = curve_degree, 
 				point = curve_points)
 			if curve_form == 2: #2 is closed
 				pm.closeCurve(temp_curve, preserveShape = False, 

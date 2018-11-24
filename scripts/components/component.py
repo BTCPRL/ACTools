@@ -296,14 +296,9 @@ class Component(object):
 
 		#Creating optional driven joint
 		if create_jnt:
-			#Get jnt name
-			jnt_name = '{}_{}'.format(ctr_side, ctr_name)
-			if 'CTR' == ctr_name.split('_')[-1]:
-				jnt_name = ctr_name[:-4]
-			
-			#Create new joint
 			new_jnt = joints.Joint(
-				name = jnt_name,
+				name = ctr_name,
+				side = ctr_side,
 				parent = self.skeleton_grp,
 				match_object = new_ctr
 			)
@@ -311,9 +306,12 @@ class Component(object):
 			#Dynamically adding the new joint as an attribute for the component
 			jnt_attr_name = '{}_jnt'.format(jnt_name).lower()
 			setattr(self, jnt_attr_name, new_jnt)
+
 			if joint_connection in ['parentConstraint', 'follow']:
 				new_ctr.last_ctr.constrain(new_jnt,'parent', mo = 0)
+			
 			if joint_connection == 'follow':
 				new_ctr.last_ctr.constrain(new_jnt,'scale', mo = 0)
+			
 			if joint_connection == 'add':
 				pass #Nothing happenss, joint is open for future connections
