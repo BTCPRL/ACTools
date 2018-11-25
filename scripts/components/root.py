@@ -16,8 +16,21 @@ class Root(component.Component):
 			'asset_name' (str): Asset's name, this is REQUIRED
 			'local_ctrls' (int): Number of ctrls under the root (default 1)
 	"""
-	def __init__(self, common_args, component_args={}):
-		super(Root, self).__init__(common_args)
+	def __init__(self):
+		super(Root, self).__init__()
+		# Private attributes
+		self._output_name = None
+		
+		# Root attributes
+		self.asset_name = None
+		self.local_ctrls = None
+		self.output_xform = None
+
+
+	def configure(self, common_args, component_args={}):
+		"""
+		"""
+		super(Root, self).configure(common_args)
 
 		# Args Validation 
 		if 'asset_name' in component_args.keys():
@@ -28,20 +41,12 @@ class Root(component.Component):
 		# Private attributes
 		self.template_data = self.get_template_data()
 		self._output_name = '{}_out_XFORM'.format(self.name)
+		self._setteable_component_args = [
+			'local_ctrls'
+		]
 		
 		# Default values
 		self.local_ctrls = 1
-		self.output_xform = None
-
-		# List of arguments that can be set by the user
-		setteable_component_args = [
-			'local_ctrls'
-		]
-
-		# Getting component args
-		for arg in component_args.keys():
-			if arg in setteable_component_args:
-				setattr(self, arg, component_args[arg])
 
 	def add_ctrls_data(self):
 		self.add_component_controler(

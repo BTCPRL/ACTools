@@ -24,10 +24,11 @@ class Rig(object):
 											'setup_grp', 'skeleton_grp']
 
 		self.root = self.initialize_component(
+			component_type = 'root',
 			common_args = {
 				'name': 'root',
 				'side': 'M',
-				'type' : 'root'
+				# 'type' : 'root'
 			},
 			component_args = {
 				'asset_name': asset_name.capitalize()
@@ -41,11 +42,11 @@ class Rig(object):
 		# self.build_base_grps()
 		# self.root_settings = None
 	
-	def register(self, common_args, component_args={}):
+	def register(self, component_type, common_args, component_args={}):
 		""" Intizializes and stores component object to the rig.
 		"""
 		#Instancing the component
-		component_obj = self.initialize_component(common_args, component_args)
+		component_obj = self.initialize_component(component_type, common_args, component_args)
 		self.components[component_obj.name] = component_obj
 		
 		#Adding the component to the dependency graph
@@ -57,7 +58,8 @@ class Rig(object):
 		)
 		return component_obj
 
-	def initialize_component(self, common_args, component_args={}):
+	def initialize_component(self, component_type, common_args, 
+			component_args={}):
 		""" Initializes a component object. 
 		This will not add the component to the self.components dictionary
 		Check component.py for information on common_args and component_args
@@ -69,21 +71,29 @@ class Rig(object):
 		TODO : 
 			Why is this using a fixed path?
 		"""
-		component_type = common_args['type']
-		component_name = common_args['name']
+		# component_type = common_args['type']
+		# component_name = common_args['name']
+		
 		#Dynamically imports and reload [component_type].py
 		module_name = '%s_module' % component_type
 		if module_name not in sys.modules:
 			component_module = imp.load_source(
 				module_name,
-				os.path.join('D:/Dev/CARF/scripts/components','%s.py'\
-																% component_type)
+				#TODO: Why using a fixed path?
+				os.path.join(
+					'D:/Dev/CARF/scripts/components',
+					'%s.py' % component_type
+				)
 			)
 		else:
 			component_module = sys.modules[module_name]
 
-		component_class = getattr(component_module, component_type.capitalize())
-		component_obj = component_class(common_args, component_args)
+		component_class = getattr(
+			component_module, 
+			component_type.capitalize()
+		)
+		component_obj = component_class()
+		component_obj.configure(common_args, component_args)
 		component_obj.add_ctrls_data()
 		return component_obj
 	

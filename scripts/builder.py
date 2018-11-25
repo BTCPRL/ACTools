@@ -49,7 +49,6 @@ class Builder(object):
 		"""
 		#Creates a Rig object from the imported module
 		self.rig = self.asset_module.Asset(
-			builder = self,
 			asset_name = self.session_obj.asset_name
 		)
 

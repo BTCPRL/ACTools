@@ -5,10 +5,11 @@ class Prop(rig.Rig):
 		super(Prop, self).__init__(asset_name)
 		
 		self.cog = self.register(
+			component_type='cog',
 			common_args = {
 				'name': 'cog',
 				'side': 'M',
-				'type' : 'cog',
+				# 'type' : 'cog',
 				'driver': 'M_root.M_root_JNT',
 				'scale_driver': 'M_root.M_root_JNT'
 			}

@@ -5,53 +5,69 @@ from CARF.scripts.maya_core import transforms as trans
 
 class Component(object):
 	"""docstring for Component"""
-	def __init__(self, common_args):
-		""" TODO: lay out which component arguments are required and which ones
-		are optional
+	def __init__(self):
+		#Component common attributes
+		self.side = None
+		self.name = None
+		self.position = None
+		
+		#Private attributes
+		# Arguments that can be set by the user, specified in each component
+		self._setteable_component_args = []
+		#Dependency graph
+		self._hierarchy_graph = None
+
+		
+		#Data for building
+		self.component_ctrls_data = {}
+		self.template_data = None
+		
+		#Contents
+		self.ctrls = {}
+		self.transforms = []
+		
+		#Drivers
+		self.driver_target = None
+		self.driver_component = None
+		self.scale_driver_target = None
+		self.scale_driver_component = None
+		self.main_driver = None
+
+		#Component top groups
+		self.ctrls_grp = None
+		self.setup_grp = None
+		self.skeleton_grp = None
+		self.driver_grp = None
+		self.output_grp = None
+
+
+	def __str__(self):
+		return self.name
+
+	def set_component_args(self, component_args):
+		"""This is how a component reads the user input
 		"""
+		for arg in component_args.keys():
+			if arg in self._setteable_component_args:
+				setattr(self, arg, component_args[arg])
+
+	def configure(self, common_args):
+		""" Fills in attributes, adds controls, etc...
+		Args:
+			common_args (dict) : TODO
+		"""
+		# TODO: Check for required args, define which ones are those
+		
 		if not ('name' in common_args) and ('side' in common_args):
 			raise Exception('Please provide name and side')
-		if not 'type' in common_args:
-			raise Exception('Please provide a component type')
-		if 'driver' not in common_args and (common_args['type'] != 'root'):
-			raise Exception('Please provide a driver')
+		# if not 'type' in common_args:
+		# # 	raise Exception('Please provide a component type')
+		# if 'driver' not in common_args and (common_args['type'] != 'root'):
+		# 	raise Exception('Please provide a driver')
 		
 		#Component common attributes
 		self.side = common_args['side']
 		self.name = '%s_%s' % (self.side,common_args['name'])
-		self.position = [0,0,0,0,0,0]
-		self.driver_target = False
-		self.scale_driver_target = False
-
-		#Getting user input
-		if 'position' in common_args.keys():
-			self.position = common_args['position']
-			
-		#Adding the drivers
-		#Drivers come defined as component.node we need to split this data
-		if common_args['type'] != 'root':
-			try:
-				self.driver_target = common_args['driver'].split('.')[1]
-				self.driver_component = common_args['driver'].split('.')[0]
-				#Scale drivers also need to be extracted
-				if 'scale_driver' in common_args.keys():
-					self.scale_driver_target =\
-									common_args['scale_driver'].split('.')[1]
-					self.scale_driver_component =\
-									common_args['scale_driver'].split('.')[0]
-			except IndexError:
-				raise IndexError("Drivers must be defined using the"\
-						" component name and the node name separated by '.'\n"\
-						"Example: 'M_cog.M_cog_JNT'")
-				
-		self.hierarchy_graph = dependency_graph.Dependency_graph(
-			graph_name = self.name)
-		
-		self.component_ctrls_data = {}
-		self.template_data = None
-		self.ctrls = {}
-		self.transforms = []
-		self.main_driver = None
 
 		self.ctrls_grp = '%s_ctrls_GRP' % self.name
 		self.setup_grp = '%s_setup_GRP' % self.name
@@ -59,9 +75,33 @@ class Component(object):
 		self.driver_grp = '%s_driver_GRP' % self.name
 		self.output_grp = '%s_output_GRP' % self.name
 
-
-	def __str__(self):
-		return self.name
+		self._hierarchy_graph = dependency_graph.Dependency_graph(
+			graph_name = self.name)
+		
+		#Getting user input
+		if 'position' in common_args.keys():
+			self.position = common_args['position']
+		else:
+			self.position = [0,0,0,0,0,0]
+		
+		#Adding the drivers
+		#Drivers come defined as component.node we need to split this data
+		# if common_args['type'] != 'root':
+		try:
+			self.driver_target = common_args['driver'].split('.')[1]
+			self.driver_component = common_args['driver'].split('.')[0]
+			#Scale drivers also need to be extracted
+			if 'scale_driver' in common_args.keys():
+				self.scale_driver_target =\
+								common_args['scale_driver'].split('.')[1]
+				self.scale_driver_component =\
+								common_args['scale_driver'].split('.')[0]
+		except IndexError:
+			raise IndexError("Drivers must be defined using the"\
+					" component name and the node name separated by '.'\n"\
+					"Example: 'M_cog.M_cog_JNT'")
+		except:
+			pass
 
 	def add_ctrls_data(self):
 		"""Needed(?) to be overwritten by inheriting classes"""
@@ -132,9 +172,9 @@ class Component(object):
 		"""
 		
 		#Validation
-		for needed_data in ['name','side','shape', 'parent']:
-			if not needed_data in ctr_data.keys():
-				raise Exception('Please provide %s for controler' % needed_data)
+		for required in ['name','side','shape', 'parent']:
+			if not required in ctr_data.keys():
+				raise Exception('Please provide %s for controler' % required)
 		
 		#Joint data validation
 		if 'add_joint' in ctr_data.keys():
@@ -147,7 +187,7 @@ class Component(object):
 		ctr_name =  '_'.join([ctr_data['side'], ctr_data['name'], 'CTR'])
 		ctr_parent = ctr_data['parent'] 
 
-		self.hierarchy_graph.add_node(ctr_name, ctr_parent)
+		self._hierarchy_graph.add_node(ctr_name, ctr_parent)
 
 		self.component_ctrls_data[ctr_name] = ctr_data
 
@@ -207,14 +247,14 @@ class Component(object):
 			name = '%s_template_GRP' % self.name,
 			parent = 'TEMPLATE_GRP'
 		)
-		self.build_controls(self.hierarchy_graph.root_node, template = True)
+		self.build_controls(self._hierarchy_graph.root_node, template = True)
 		self.solve(template=True)
 
 	def build_component(self):
 		"""
 		"""
 		self.create_component_base()
-		self.build_controls(self.hierarchy_graph.root_node)
+		self.build_controls(self._hierarchy_graph.root_node)
 		self.solve()
 			
 	def solve(self, template=False): 
