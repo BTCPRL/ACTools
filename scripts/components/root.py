@@ -16,8 +16,8 @@ class Root(component.Component):
 			'asset_name' (str): Asset's name, this is REQUIRED
 			'local_ctrls' (int): Number of ctrls under the root (default 1)
 	"""
-	def __init__(self):
-		super(Root, self).__init__()
+	def __init__(self, common_args, component_args={}):
+		super(Root, self).__init__(common_args, component_args)
 		# Private attributes
 		self._output_name = None
 		
@@ -27,14 +27,14 @@ class Root(component.Component):
 		self.output_xform = None
 
 
-	def configure(self, common_args, component_args={}):
+	def configure(self):
 		"""
 		"""
-		super(Root, self).configure(common_args)
+		super(Root, self).configure()
 
 		# Args Validation 
-		if 'asset_name' in component_args.keys():
-			self.asset_name = component_args['asset_name']
+		if 'asset_name' in self.component_args.keys():
+			self.asset_name = self.component_args['asset_name']
 		else:
 			raise Exception('Please provide an asset_name')
 		

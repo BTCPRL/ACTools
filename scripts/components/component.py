@@ -5,7 +5,11 @@ from CARF.scripts.maya_core import transforms as trans
 
 class Component(object):
 	"""docstring for Component"""
-	def __init__(self):
+	def __init__(self, common_args, component_args={}):
+		# Data storage
+		self.common_args = common_args
+		self.component_args = component_args #Component-type specific data
+		
 		#Component common attributes
 		self.side = None
 		self.name = None
@@ -16,7 +20,6 @@ class Component(object):
 		self._setteable_component_args = []
 		#Dependency graph
 		self._hierarchy_graph = None
-
 		
 		#Data for building
 		self.component_ctrls_data = {}
@@ -44,24 +47,28 @@ class Component(object):
 	def __str__(self):
 		return self.name
 
-	def set_component_args(self, component_args):
-		"""This is how a component reads the user input
+	def set_component_args(self):
+		"""This is how a component reads the user input, it will only store
+		arguments defined in _setteable_component_args, if an argument requires
+		some logic before it can be stored, it shouldn't be part of this list
+		and instead should be treated individually
 		"""
-		for arg in component_args.keys():
+		for arg in self.component_args.keys():
 			if arg in self._setteable_component_args:
-				setattr(self, arg, component_args[arg])
+				setattr(self, arg, self.component_args[arg])
 
-	def configure(self, common_args):
+	def configure(self):
 		""" Fills in attributes, adds controls, etc...
 		Args:
 			common_args (dict) : TODO
 		"""
 		# TODO: Check for required args, define which ones are those
 		
+		common_args = self.common_args
+		
 		if not ('name' in common_args) and ('side' in common_args):
 			raise Exception('Please provide name and side')
-		# if not 'type' in common_args:
-		# # 	raise Exception('Please provide a component type')
+
 		# if 'driver' not in common_args and (common_args['type'] != 'root'):
 		# 	raise Exception('Please provide a driver')
 		

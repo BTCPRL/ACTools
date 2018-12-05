@@ -11,6 +11,9 @@ class Rig(object):
 
 		self.asset_name = asset_name
 
+		#Private attributes
+		self._components_list = []
+
 		#Empty attributes for clarity of mind
 		self.components = {}
 		self.template_data = None
@@ -35,27 +38,29 @@ class Rig(object):
 			}
 		)
 
-		self.dependency_graph = dependency_graph.Dependency_graph(
-			graph_name = self.asset_name,
-			graph_root_name = self.root.name
-		)
+		self.dependency_graph = None
 		# self.build_base_grps()
 		# self.root_settings = None
 	
-	def register(self, component_type, common_args, component_args={}):
-		""" Intizializes and stores component object to the rig.
+	def add_component(self, component_type, common_args, component_args={}):
+		""" Intizializes and stores component object in the rig.
 		"""
 		#Instancing the component
-		component_obj = self.initialize_component(component_type, common_args, component_args)
-		self.components[component_obj.name] = component_obj
-		
-		#Adding the component to the dependency graph
-		driver_full_name = str(common_args['driver'])
-		driver_component = driver_full_name.split('.')[0]
-		self.dependency_graph.add_node(
-			node_name = component_obj.name,
-			node_parent = component_obj.driver_component
+		component_obj = self.initialize_component(
+			component_type, 
+			common_args, 
+			component_args
 		)
+		self._components_list.append(component_obj)
+		# self.components[component_obj.name] = component_obj
+		
+		# #Adding the component to the dependency graph
+		# driver_full_name = str(common_args['driver'])
+		# driver_component = driver_full_name.split('.')[0]
+		# self.dependency_graph.add_node(
+		# 	node_name = component_obj.name,
+		# 	node_parent = component_obj.driver_component
+		# )
 		return component_obj
 
 	def initialize_component(self, component_type, common_args, 
@@ -69,7 +74,8 @@ class Rig(object):
 		Returns:
 			component: An instance of the specified component type 
 		TODO : 
-			Why is this using a fixed path?
+			Fixed path used because otherwise rig will need a session/builder
+			object to propperly work, think on how to go about this
 		"""
 		# component_type = common_args['type']
 		# component_name = common_args['name']
@@ -88,15 +94,42 @@ class Rig(object):
 		else:
 			component_module = sys.modules[module_name]
 
-		component_class = getattr(
-			component_module, 
-			component_type.capitalize()
-		)
-		component_obj = component_class()
-		component_obj.configure(common_args, component_args)
-		component_obj.add_ctrls_data()
+		Component_class = getattr(component_module, 
+								  component_type.capitalize())
+
+		component_obj = Component_class(common_args, component_args)
+		# component_obj.configure(common_args, component_args)
+		# component_obj.add_ctrls_data()
 		return component_obj
 	
+	def configure_rig(self):
+		""" TODO: Docs
+		All components get configured here
+		"""
+		#Root comp configuration
+		self.root.configure()
+		self.root.add_ctrls_data()
+
+		#Creating the dependency graph, and adding the root as a base
+		self.dependency_graph = dependency_graph.Dependency_graph(
+			graph_name = self.asset_name,
+			graph_root_name = self.root.name
+		)
+
+		#Configuring the rest of the components and populating dependency graph
+		for comp in self._components_list:
+			comp.configure()
+			comp.set_component_args()
+			comp.add_ctrls_data()
+			#Adding the component to the dependency graph
+			# driver_full_name = str(comp.common_args['driver'])
+			# driver_component = driver_full_name.split('.')[0]
+			self.dependency_graph.add_node(
+				node_name = comp.name,
+				node_parent = comp.driver_component
+			)
+			self.components[comp.name] = comp
+
 	def set_template_data(self, data):
 		""" Saves data into rig.template_data attribute
 		It also assigns each component it's own template data

@@ -9,14 +9,14 @@ class Cog(static.Static):
     # def __init__(self, common_args, component_args={}):
     # 	super(Cog, self).__init__(common_args)
     
-    def configure(self, common_args, component_args={}):
+    def configure(self):
         """
         """
-        super(Cog, self).configure(common_args,component_args)	
+        super(Cog, self).configure()	
         # Default COG values
         
         # Common
-        if 'position' not in common_args:
+        if 'position' not in self.common_args:
             self.position = [0,20,0,0,0,0]
         
         # Behavior

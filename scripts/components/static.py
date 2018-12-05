@@ -13,8 +13,8 @@ class Static(component.Component):
         add_joint (str): valid inputs are ['follow','add','parentConstraint']
 
     """
-    def __init__(self):
-        super(Static, self).__init__()
+    def __init__(self, common_args, component_args={} ):
+        super(Static, self).__init__(common_args, component_args)
 
         # Private attributes
         self._output_name = None
@@ -31,10 +31,10 @@ class Static(component.Component):
         self.ctr_name = None
         self.ctr_full_name = None
         
-    def configure(self, common_args, component_args={}):
+    def configure(self):
         """
         """
-        super(Static, self).configure(common_args)
+        super(Static, self).configure()
         
         # Private attributes
         self._output_name = '{}_out_XFORM'.format(self.name)
