@@ -4,6 +4,7 @@ import os
 
 from CARF.scripts.maya_core import dependency_graph
 from CARF.scripts.maya_core import transforms as trans
+from CARF.scripts.components import component
 
 class Rig(object):
 	"""docstring for Rig"""
@@ -24,7 +25,7 @@ class Rig(object):
 		self.setup_grp = None
 		self.skeleton_grp = None
 		self.base_grps = ['root_grp', 'geo_grp', 'ctrls_grp', 
-											'setup_grp', 'skeleton_grp']
+						  'setup_grp', 'skeleton_grp']
 
 		self.root = self.initialize_component(
 			component_type = 'root',
@@ -65,7 +66,8 @@ class Rig(object):
 
 	def initialize_component(self, component_type, common_args, 
 			component_args={}):
-		""" Initializes a component object. 
+		"""  TODO: this could probabbly be deleted, just call component.create directly
+		Initializes a component object. 
 		This will not add the component to the self.components dictionary
 		Check component.py for information on common_args and component_args
 		Args:
@@ -73,33 +75,35 @@ class Rig(object):
 			component_args (dict) : Keyword arguments specific to each type
 		Returns:
 			component: An instance of the specified component type 
-		TODO : 
-			Fixed path used because otherwise rig will need a session/builder
-			object to propperly work, think on how to go about this
 		"""
 		# component_type = common_args['type']
 		# component_name = common_args['name']
 		
 		#Dynamically imports and reload [component_type].py
-		module_name = '%s_module' % component_type
-		if module_name not in sys.modules:
-			component_module = imp.load_source(
-				module_name,
-				#TODO: Why using a fixed path?
-				os.path.join(
-					'D:/Dev/CARF/scripts/components',
-					'%s.py' % component_type
-				)
-			)
-		else:
-			component_module = sys.modules[module_name]
+		# module_name = '%s_module' % component_type
+		# if module_name not in sys.modules:
+		# 	# component_module = imp.load_source(
+		# 	# 	module_name,
+		# 	# 	#TODO: Why using a fixed path?
+		# 	# 	os.path.join(
+		# 	# 		'D:/Dev/CARF/scripts/components',
+		# 	# 		'%s.py' % component_type
+		# 	# 	)
+		# 	# )
+		# else:
+		# 	component_module = sys.modules[module_name]
 
-		Component_class = getattr(component_module, 
-								  component_type.capitalize())
+		# Component_class = getattr(component_module, 
+		# 						  component_type.capitalize())
 
-		component_obj = Component_class(common_args, component_args)
+		# component_obj = Component_class(common_args, component_args)
 		# component_obj.configure(common_args, component_args)
 		# component_obj.add_ctrls_data()
+		component_obj = component.create(
+			component_type,
+			common_args, 
+			component_args
+		)
 		return component_obj
 	
 	def configure_rig(self):

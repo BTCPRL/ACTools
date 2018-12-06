@@ -1,3 +1,5 @@
+import importlib
+
 from CARF.scripts.maya_core import controls
 from CARF.scripts.maya_core import joints
 from CARF.scripts.maya_core import dependency_graph
@@ -59,8 +61,7 @@ class Component(object):
 
 	def configure(self):
 		""" Fills in attributes, adds controls, etc...
-		Args:
-			common_args (dict) : TODO
+		TODO :Docstring
 		"""
 		# TODO: Check for required args, define which ones are those
 		
@@ -361,3 +362,24 @@ class Component(object):
 			
 			if joint_connection == 'add':
 				pass #Nothing happenss, joint is open for future connections
+
+def create(component_type, common_args, component_args):
+	""" Dynamically loads a specific component module. Gets the class and 
+	instanciates an obect
+	TODO: better docstring
+	"""
+	#First we create the relative module name
+	relative_module = '.'+component_type
+
+	#Import the module
+	component_module = importlib.import_module(relative_module, 
+											   package=__package__)
+	#Get the class
+	Component_class = getattr(component_module, 
+							  component_type.capitalize())
+
+	#Create the actual component object
+	component_obj = Component_class(common_args, 
+									component_args)
+	
+	return component_obj
