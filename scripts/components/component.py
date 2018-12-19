@@ -7,6 +7,7 @@ from CARF.scripts.maya_core import transforms as trans
 
 class Component(object):
 	"""docstring for Component"""
+
 	def __init__(self, common_args, component_args={}):
 		# Data storage
 		self.common_args = common_args
@@ -18,10 +19,10 @@ class Component(object):
 		self.position = None
 		
 		#Private attributes
-		# Arguments that can be set by the user, specified in each component
-		self._setteable_component_args = []
 		#Dependency graph
 		self._hierarchy_graph = None
+		# Arguments that can be set by the user, specified in each component
+		self._setteable_component_args = []
 		
 		#Data for building
 		self.component_ctrls_data = {}
@@ -60,18 +61,13 @@ class Component(object):
 				setattr(self, arg, self.component_args[arg])
 
 	def configure(self):
-		""" Fills in attributes, adds controls, etc...
-		TODO :Docstring
+		""" Sets the component's attributes based on the user input
 		"""
-		# TODO: Check for required args, define which ones are those
-		
 		common_args = self.common_args
 		
+		#Common_args validation
 		if not ('name' in common_args) and ('side' in common_args):
 			raise Exception('Please provide name and side')
-
-		# if 'driver' not in common_args and (common_args['type'] != 'root'):
-		# 	raise Exception('Please provide a driver')
 		
 		#Component common attributes
 		self.side = common_args['side']
@@ -92,27 +88,35 @@ class Component(object):
 		else:
 			self.position = [0,0,0,0,0,0]
 		
-		#Adding the drivers
-		#Drivers come defined as component.node we need to split this data
-		# if common_args['type'] != 'root':
-		try:
-			self.driver_target = common_args['driver'].split('.')[1]
-			self.driver_component = common_args['driver'].split('.')[0]
+		# Adding the drivers
+		# Only the Root component can have no driver
+		#TODO: What if driver-less components are actually allowed?
+		if 'Root' not in str(type(self)):
+			if 'driver' not in common_args:
+				raise Exception('Please provide a driver')
+			
+			driver_full = common_args['driver']
+
+			if len(driver_full.split('.')) != 2:
+				raise Exception(
+					"Drivers must be defined using the"\
+					" component name and the node name separated by '.'\n"\
+					"Example: 'M_cog.M_cog_JNT'"
+				)
+			
+			#Drivers come defined as component.node we need to split this data
+			self.driver_target = driver_full.split('.')[1]
+			self.driver_component = driver_full.split('.')[0]
+			
 			#Scale drivers also need to be extracted
 			if 'scale_driver' in common_args.keys():
 				self.scale_driver_target =\
 								common_args['scale_driver'].split('.')[1]
 				self.scale_driver_component =\
 								common_args['scale_driver'].split('.')[0]
-		except IndexError:
-			raise IndexError("Drivers must be defined using the"\
-					" component name and the node name separated by '.'\n"\
-					"Example: 'M_cog.M_cog_JNT'")
-		except:
-			pass
 
 	def add_ctrls_data(self):
-		"""Needed(?) to be overwritten by inheriting classes"""
+		"""This method should be overwritten by each component type """
 		pass
 	
 	def create_component_base(self):
@@ -300,9 +304,8 @@ class Component(object):
 	def build_controls(self, graph_node, template = False):
 		""" Using the component data, builds a controler
 		Private function, can't be accesed outside of component.py 
-		Uses the @travel_graph decorator to create all the controlers of the given
-		component 
-		TODO: Should/could this be a method instead of a function?
+		Uses the @travel_graph decorator to create all the controlers of the 
+		given component 
 		"""
 		data = self.component_ctrls_data[str(graph_node)]
 		
@@ -337,6 +340,7 @@ class Component(object):
 			
 		#Creating the controler
 		new_ctr = controls.Control(**data)
+		
 		#Dynamically adding the new ctr as an attribute for the component
 		ctr_attr_name = '{}_{}_ctr'.format(ctr_side, ctr_name).lower()
 		setattr(self, ctr_attr_name, new_ctr)
@@ -363,23 +367,24 @@ class Component(object):
 			if joint_connection == 'add':
 				pass #Nothing happenss, joint is open for future connections
 
-def create(component_type, common_args, component_args):
-	""" Dynamically loads a specific component module. Gets the class and 
-	instanciates an obect
-	TODO: better docstring
+def create(component_type, common_args, component_args={}):
+	""" Dynamically loads a specific component module, gets the class and 
+	instanciates an object
+	Args:
+		component_type (str): Type of component that is going to be created
+		common_args (dict) : Keyword arguments common to all components
+		component_args (dict) : Keyword arguments specific to each type
+	
+	Returns:
+		component: An instance of the specified component type 
 	"""
-	#First we create the relative module name
 	relative_module = '.'+component_type
 
-	#Import the module
 	component_module = importlib.import_module(relative_module, 
 											   package=__package__)
-	#Get the class
-	Component_class = getattr(component_module, 
-							  component_type.capitalize())
 
-	#Create the actual component object
-	component_obj = Component_class(common_args, 
-									component_args)
+	Component_class = getattr(component_module, component_type.capitalize())
+
+	component_obj = Component_class(common_args, component_args)
 	
 	return component_obj
