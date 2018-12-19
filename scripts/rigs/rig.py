@@ -4,12 +4,16 @@ import os
 
 from CARF.scripts.maya_core import dependency_graph
 from CARF.scripts.maya_core import transforms as trans
+from CARF.scripts.components import component
 
 class Rig(object):
 	"""docstring for Rig"""
 	def __init__(self, asset_name):
 
 		self.asset_name = asset_name
+
+		#Private attributes
+		self._components_list = []
 
 		#Empty attributes for clarity of mind
 		self.components = {}
@@ -21,72 +25,70 @@ class Rig(object):
 		self.setup_grp = None
 		self.skeleton_grp = None
 		self.base_grps = ['root_grp', 'geo_grp', 'ctrls_grp', 
-											'setup_grp', 'skeleton_grp']
+						  'setup_grp', 'skeleton_grp']
 
-		self.root = self.initialize_component(
+		self.root = component.create(
+			component_type = 'root',
 			common_args = {
 				'name': 'root',
 				'side': 'M',
-				'type' : 'root'
+				# 'type' : 'root'
 			},
 			component_args = {
 				'asset_name': asset_name.capitalize()
 			}
 		)
 
+		self.dependency_graph = None
+		# self.build_base_grps()
+		# self.root_settings = None
+	
+	def add_component(self, component_type, common_args, component_args={}):
+		""" Intizializes and stores component object in the rig.
+		This will not configure the component, just creates the instance
+		"""
+		#Instancing the component
+		component_obj = component.create(
+			component_type, 
+			common_args, 
+			component_args
+		)
+		self._components_list.append(component_obj)
+
+		return component_obj
+	
+	def configure_rig(self):
+		""" Configures components and creates dependency graph 
+		Configures the root component before creating the dependency graph, 
+		It then proceeds to configure each individual component
+
+		If a rig were to need user-level input, it would be read here
+		"""
+		#Root comp configuration
+		self.root.configure()
+		self.root.add_ctrls_data()
+
+		#Creating the dependency graph, and adding the root as a base
 		self.dependency_graph = dependency_graph.Dependency_graph(
 			graph_name = self.asset_name,
 			graph_root_name = self.root.name
 		)
-		# self.build_base_grps()
-		# self.root_settings = None
-	
-	def register(self, common_args, component_args={}):
-		""" Intizializes and stores component object to the rig.
-		"""
-		#Instancing the component
-		component_obj = self.initialize_component(common_args, component_args)
-		self.components[component_obj.name] = component_obj
-		
-		#Adding the component to the dependency graph
-		driver_full_name = str(common_args['driver'])
-		driver_component = driver_full_name.split('.')[0]
-		self.dependency_graph.add_node(
-			node_name = component_obj.name,
-			node_parent = component_obj.driver_component
-		)
-		return component_obj
 
-	def initialize_component(self, common_args, component_args={}):
-		""" Initializes a component object. 
-		This will not add the component to the self.components dictionary
-		Check component.py for information on common_args and component_args
-		Args:
-			common_args (dict) : Keyword arguments common to all components
-			component_args (dict) : Keyword arguments specific to each type
-		Returns:
-			component: An instance of the specified component type 
-		TODO : 
-			Why is this using a fixed path?
-		"""
-		component_type = common_args['type']
-		component_name = common_args['name']
-		#Dynamically imports and reload [component_type].py
-		module_name = '%s_module' % component_type
-		if module_name not in sys.modules:
-			component_module = imp.load_source(
-				module_name,
-				os.path.join('D:/Dev/CARF/scripts/components','%s.py'\
-																% component_type)
+		#Configuring the rest of the components and populating dependency graph
+		for comp in self._components_list:
+			#Setting up (or configuring) the component
+			comp.configure()
+			comp.set_component_args()
+			comp.add_ctrls_data()
+			self.components[comp.name] = comp
+			
+			#Adding the component to the dependency graph
+			self.dependency_graph.add_node(
+				node_name = comp.name,
+				node_parent = comp.driver_component
 			)
-		else:
-			component_module = sys.modules[module_name]
+			
 
-		component_class = getattr(component_module, component_type.capitalize())
-		component_obj = component_class(common_args, component_args)
-		component_obj.add_ctrls_data()
-		return component_obj
-	
 	def set_template_data(self, data):
 		""" Saves data into rig.template_data attribute
 		It also assigns each component it's own template data

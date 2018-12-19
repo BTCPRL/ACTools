@@ -49,9 +49,13 @@ class Builder(object):
 		"""
 		#Creates a Rig object from the imported module
 		self.rig = self.asset_module.Asset(
-			builder = self,
 			asset_name = self.session_obj.asset_name
 		)
+
+	def configure_rig(self):
+		"""TODO: Still not too sure what's gonna happen here
+		"""
+		self.rig.configure_rig()
 
 	def setup_rig_base(self):
 		""" Builds base groups and root controller. 
@@ -114,12 +118,18 @@ class Builder(object):
 	def build_rig_template(self):
 		"""Builds the rig template
 		Sets the current stage to template and forces a new maya scene
+		TODO: some of these are just direct calls to rig.method(). If so, why
+		not just use the rig calls? at the end of the day, the user will be
+		editing a class that inherits from rig, no need to add extra steps to
+		builder since the user will not have direct access to them...right?
 		"""
 		self.set_stage('template')
 
 		maya_files.new_file() #New scene
 		
 		self.initialize_rig() #Instanciates rig object
+
+		self.configure_rig() #Stuff happens here TODO: define said stuff
 
 		self.setup_rig_base() #Creates base groups and root
 
@@ -185,6 +195,8 @@ class Builder(object):
 		
 		self.initialize_rig() #Instanciates rig object
 
+		self.configure_rig() #Stuff happens here TODO: define said stuff
+		
 		self.import_template_data() #Load saved tempalte data
 		
 		self.setup_rig_base() #Creates base groups and root

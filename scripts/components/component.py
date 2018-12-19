@@ -1,3 +1,5 @@
+import importlib
+
 from CARF.scripts.maya_core import controls
 from CARF.scripts.maya_core import joints
 from CARF.scripts.maya_core import dependency_graph
@@ -5,53 +7,71 @@ from CARF.scripts.maya_core import transforms as trans
 
 class Component(object):
 	"""docstring for Component"""
-	def __init__(self, common_args):
-		""" TODO: lay out which component arguments are required and which ones
-		are optional
+
+	def __init__(self, common_args, component_args={}):
+		# Data storage
+		self.common_args = common_args
+		self.component_args = component_args #Component-type specific data
+		
+		#Component common attributes
+		self.side = None
+		self.name = None
+		self.position = None
+		
+		#Private attributes
+		#Dependency graph
+		self._hierarchy_graph = None
+		# Arguments that can be set by the user, specified in each component
+		self._setteable_component_args = []
+		
+		#Data for building
+		self.component_ctrls_data = {}
+		self.template_data = None
+		
+		#Contents
+		self.ctrls = {}
+		self.transforms = []
+		
+		#Drivers
+		self.driver_target = None
+		self.driver_component = None
+		self.scale_driver_target = None
+		self.scale_driver_component = None
+		self.main_driver = None
+
+		#Component top groups
+		self.ctrls_grp = None
+		self.setup_grp = None
+		self.skeleton_grp = None
+		self.driver_grp = None
+		self.output_grp = None
+
+
+	def __str__(self):
+		return self.name
+
+	def set_component_args(self):
+		"""This is how a component reads the user input, it will only store
+		arguments defined in _setteable_component_args, if an argument requires
+		some logic before it can be stored, it shouldn't be part of this list
+		and instead should be treated individually
 		"""
+		for arg in self.component_args.keys():
+			if arg in self._setteable_component_args:
+				setattr(self, arg, self.component_args[arg])
+
+	def configure(self):
+		""" Sets the component's attributes based on the user input
+		"""
+		common_args = self.common_args
+		
+		#Common_args validation
 		if not ('name' in common_args) and ('side' in common_args):
 			raise Exception('Please provide name and side')
-		if not 'type' in common_args:
-			raise Exception('Please provide a component type')
-		if 'driver' not in common_args and (common_args['type'] != 'root'):
-			raise Exception('Please provide a driver')
 		
 		#Component common attributes
 		self.side = common_args['side']
 		self.name = '%s_%s' % (self.side,common_args['name'])
-		self.position = [0,0,0,0,0,0]
-		self.driver_target = False
-		self.scale_driver_target = False
-
-		#Getting user input
-		if 'position' in common_args.keys():
-			self.position = common_args['position']
-			
-		#Adding the drivers
-		#Drivers come defined as component.node we need to split this data
-		if common_args['type'] != 'root':
-			try:
-				self.driver_target = common_args['driver'].split('.')[1]
-				self.driver_component = common_args['driver'].split('.')[0]
-				#Scale drivers also need to be extracted
-				if 'scale_driver' in common_args.keys():
-					self.scale_driver_target =\
-									common_args['scale_driver'].split('.')[1]
-					self.scale_driver_component =\
-									common_args['scale_driver'].split('.')[0]
-			except IndexError:
-				raise IndexError("Drivers must be defined using the"\
-						" component name and the node name separated by '.'\n"\
-						"Example: 'M_cog.M_cog_JNT'")
-				
-		self.hierarchy_graph = dependency_graph.Dependency_graph(
-			graph_name = self.name)
-		
-		self.component_ctrls_data = {}
-		self.template_data = None
-		self.ctrls = {}
-		self.transforms = []
-		self.main_driver = None
 
 		self.ctrls_grp = '%s_ctrls_GRP' % self.name
 		self.setup_grp = '%s_setup_GRP' % self.name
@@ -59,12 +79,44 @@ class Component(object):
 		self.driver_grp = '%s_driver_GRP' % self.name
 		self.output_grp = '%s_output_GRP' % self.name
 
+		self._hierarchy_graph = dependency_graph.Dependency_graph(
+			graph_name = self.name)
+		
+		#Getting user input
+		if 'position' in common_args.keys():
+			self.position = common_args['position']
+		else:
+			self.position = [0,0,0,0,0,0]
+		
+		# Adding the drivers
+		# Only the Root component can have no driver
+		#TODO: What if driver-less components are actually allowed?
+		if 'Root' not in str(type(self)):
+			if 'driver' not in common_args:
+				raise Exception('Please provide a driver')
+			
+			driver_full = common_args['driver']
 
-	def __str__(self):
-		return self.name
+			if len(driver_full.split('.')) != 2:
+				raise Exception(
+					"Drivers must be defined using the"\
+					" component name and the node name separated by '.'\n"\
+					"Example: 'M_cog.M_cog_JNT'"
+				)
+			
+			#Drivers come defined as component.node we need to split this data
+			self.driver_target = driver_full.split('.')[1]
+			self.driver_component = driver_full.split('.')[0]
+			
+			#Scale drivers also need to be extracted
+			if 'scale_driver' in common_args.keys():
+				self.scale_driver_target =\
+								common_args['scale_driver'].split('.')[1]
+				self.scale_driver_component =\
+								common_args['scale_driver'].split('.')[0]
 
 	def add_ctrls_data(self):
-		"""Needed(?) to be overwritten by inheriting classes"""
+		"""This method should be overwritten by each component type """
 		pass
 	
 	def create_component_base(self):
@@ -132,9 +184,9 @@ class Component(object):
 		"""
 		
 		#Validation
-		for needed_data in ['name','side','shape', 'parent']:
-			if not needed_data in ctr_data.keys():
-				raise Exception('Please provide %s for controler' % needed_data)
+		for required in ['name','side','shape', 'parent']:
+			if not required in ctr_data.keys():
+				raise Exception('Please provide %s for controler' % required)
 		
 		#Joint data validation
 		if 'add_joint' in ctr_data.keys():
@@ -147,7 +199,7 @@ class Component(object):
 		ctr_name =  '_'.join([ctr_data['side'], ctr_data['name'], 'CTR'])
 		ctr_parent = ctr_data['parent'] 
 
-		self.hierarchy_graph.add_node(ctr_name, ctr_parent)
+		self._hierarchy_graph.add_node(ctr_name, ctr_parent)
 
 		self.component_ctrls_data[ctr_name] = ctr_data
 
@@ -207,14 +259,14 @@ class Component(object):
 			name = '%s_template_GRP' % self.name,
 			parent = 'TEMPLATE_GRP'
 		)
-		self.build_controls(self.hierarchy_graph.root_node, template = True)
+		self.build_controls(self._hierarchy_graph.root_node, template = True)
 		self.solve(template=True)
 
 	def build_component(self):
 		"""
 		"""
 		self.create_component_base()
-		self.build_controls(self.hierarchy_graph.root_node)
+		self.build_controls(self._hierarchy_graph.root_node)
 		self.solve()
 			
 	def solve(self, template=False): 
@@ -252,9 +304,8 @@ class Component(object):
 	def build_controls(self, graph_node, template = False):
 		""" Using the component data, builds a controler
 		Private function, can't be accesed outside of component.py 
-		Uses the @travel_graph decorator to create all the controlers of the given
-		component 
-		TODO: Should/could this be a method instead of a function?
+		Uses the @travel_graph decorator to create all the controlers of the 
+		given component 
 		"""
 		data = self.component_ctrls_data[str(graph_node)]
 		
@@ -289,6 +340,7 @@ class Component(object):
 			
 		#Creating the controler
 		new_ctr = controls.Control(**data)
+		
 		#Dynamically adding the new ctr as an attribute for the component
 		ctr_attr_name = '{}_{}_ctr'.format(ctr_side, ctr_name).lower()
 		setattr(self, ctr_attr_name, new_ctr)
@@ -314,3 +366,25 @@ class Component(object):
 			
 			if joint_connection == 'add':
 				pass #Nothing happenss, joint is open for future connections
+
+def create(component_type, common_args, component_args={}):
+	""" Dynamically loads a specific component module, gets the class and 
+	instanciates an object
+	Args:
+		component_type (str): Type of component that is going to be created
+		common_args (dict) : Keyword arguments common to all components
+		component_args (dict) : Keyword arguments specific to each type
+	
+	Returns:
+		component: An instance of the specified component type 
+	"""
+	relative_module = '.'+component_type
+
+	component_module = importlib.import_module(relative_module, 
+											   package=__package__)
+
+	Component_class = getattr(component_module, component_type.capitalize())
+
+	component_obj = Component_class(common_args, component_args)
+	
+	return component_obj
