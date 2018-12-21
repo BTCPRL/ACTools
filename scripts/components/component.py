@@ -17,6 +17,8 @@ class Component(object):
 		self.side = None
 		self.name = None
 		self.position = None
+		self.create_settings_ctr = None
+		self.settings_proxy = False
 		
 		#Private attributes
 		#Dependency graph
@@ -31,13 +33,15 @@ class Component(object):
 		#Contents
 		self.ctrls = {}
 		self.transforms = []
+		self.settings = None
 		
 		#Drivers
 		self.driver_target = None
-		# self.driver_component = None
 		self.scale_driver_target = None
-		# self.scale_driver_component = None
+		self.settings_driver_target = None
 		self.main_driver = None
+		# self.driver_component = None
+		# self.scale_driver_component = None
 
 		#Component top groups
 		self.ctrls_grp = None
@@ -71,8 +75,9 @@ class Component(object):
 		
 		#Component common attributes
 		self.side = common_args['side']
-		self.name = '%s_%s' % (self.side,common_args['name'])
-
+		self.name = common_args['name']
+		self.full_name = '_'.join([self.side, self.name])
+		
 		self.ctrls_grp = '%s_ctrls_GRP' % self.name
 		self.setup_grp = '%s_setup_GRP' % self.name
 		self.skeleton_grp = '%s_skeleton_GRP' % self.name
@@ -87,7 +92,7 @@ class Component(object):
 			self.position = common_args['position']
 		else:
 			self.position = [0,0,0,0,0,0]
-		
+
 		# Adding the drivers
 		# Only the Root component can have no driver
 		#TODO: What if driver-less components are actually allowed?
@@ -268,6 +273,30 @@ class Component(object):
 		self.build_controls(self._hierarchy_graph.root_node)
 		self.solve()
 			
+	def setup_settings_ctr(self):
+		""" Creates the settings ctr for the component
+		This control will cointain attributes that will modify the behavior
+		of the component. 
+		TODO: 'proxy_Driver' has bigger implications than this
+		If a "proxy_driver" is specified, no new control gets created
+		"""
+
+		if self.create_settings_ctr:
+
+			self.settings = controls.Control(
+				name='{}_settings'.format(self.name),
+				side=self.side,
+				shape='settings',
+				color='green'
+			)
+
+			driver = self.main_driver
+			if self.settings_driver_target:
+				driver = self.settings_driver_target
+			self.settings.constrain_to(driver, 'parent', mo=False)
+			self.settings.constrain_to(driver, 'scale', mo=False)
+			self.settings.attr_lock(['t','r','s','v'])
+
 	def solve(self, template=False): 
 		"""Adds the logic to the component
 		Args:

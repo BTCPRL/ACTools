@@ -14,7 +14,7 @@ class Root(component.Component):
 	Args:
 		component_args (dict):
 			'asset_name' (str): Asset's name, this is REQUIRED
-			'local_ctrls' (int): Number of ctrls under the root (default 1)
+			'local_tweaks' (int): Number of ctrls under the root (default 1)
 	"""
 	def __init__(self, common_args, component_args={}):
 		super(Root, self).__init__(common_args, component_args)
@@ -23,7 +23,7 @@ class Root(component.Component):
 		
 		# Root attributes
 		self.asset_name = None
-		self.local_ctrls = None
+		self.local_tweaks = None
 		self.output_xform = None
 
 
@@ -42,11 +42,13 @@ class Root(component.Component):
 		self.template_data = self.get_template_data()
 		self._output_name = '{}_out_XFORM'.format(self.name)
 		self._setteable_component_args = [
-			'local_ctrls'
+			'local_tweaks'
 		]
 		
 		# Default values
-		self.local_ctrls = 1
+		self.local_tweaks = 0
+		self.create_settings_ctr = True
+		self.settings_driver_target = 'M_root_JNT'
 
 	def add_ctrls_data(self):
 		self.add_component_controler(
@@ -68,14 +70,14 @@ class Root(component.Component):
 				'color':'dark_yellow',
 				'shape':'arrow',
 				'parent':'M_root_CTR',
-				'tweak_ctrls': self.local_ctrls
+				'tweak_ctrls': self.local_tweaks
 			}
 		)
 		# sub_ctrl_size = 1
-		# size_decrement = 1 / float(self.local_ctrls + 1)
+		# size_decrement = 1 / float(self.local_tweaks + 1)
 
 		# last_ctr = 'M_root_CTR'
-		# for i in range(self.local_ctrls):
+		# for i in range(self.local_tweaks):
 		# 	ctrl_number = '' if not i else '_{}'.format(i+1)
 		# 	ctr_name = 'local{}'.format(ctrl_number)
 		# 	self.add_component_controler(

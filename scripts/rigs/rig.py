@@ -33,7 +33,6 @@ class Rig(object):
 			common_args = {
 				'name': 'root',
 				'side': 'M',
-				# 'type' : 'root'
 			},
 			component_args = {
 				'asset_name': asset_name.capitalize()
@@ -82,7 +81,7 @@ class Rig(object):
 			comp.add_ctrls_data()
 
 			#Adding it to the public dictionary of components
-			self.components[comp.name] = comp
+			self.components[comp.full_name] = comp
 			
 			# #Adding the component to the dependency graph
 			# self.dependency_graph.add_node(
@@ -143,6 +142,9 @@ class Rig(object):
 		
 		for component_obj in self.components.values():	
 			component_obj.setup_driver()
+		
+		for component_obj in self.components.values():	
+			component_obj.setup_settings_ctr()
 
 	def build(self):
 		"""This method will be overwritten in each rig type
@@ -155,6 +157,7 @@ class Rig(object):
 		"""
 		self.root.build_component()
 		self.root_ctr = self.root.ctrls['M_root_CTR']
+		self.root.setup_settings_ctr()
 
 
 	def final_touches(self):

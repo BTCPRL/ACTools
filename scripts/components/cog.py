@@ -24,3 +24,4 @@ class Cog(static.Static):
         
         # Interface
         self.ctr_shape = 'arrow_cross'
+        self.create_settings_ctr = True
