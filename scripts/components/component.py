@@ -34,9 +34,9 @@ class Component(object):
 		
 		#Drivers
 		self.driver_target = None
-		self.driver_component = None
+		# self.driver_component = None
 		self.scale_driver_target = None
-		self.scale_driver_component = None
+		# self.scale_driver_component = None
 		self.main_driver = None
 
 		#Component top groups
@@ -95,25 +95,24 @@ class Component(object):
 			if 'driver' not in common_args:
 				raise Exception('Please provide a driver')
 			
-			driver_full = common_args['driver']
+			# driver_full = 
 
-			if len(driver_full.split('.')) != 2:
-				raise Exception(
-					"Drivers must be defined using the"\
-					" component name and the node name separated by '.'\n"\
-					"Example: 'M_cog.M_cog_JNT'"
-				)
+			# if len(driver_full.split('.')) != 2:
+			# 	raise Exception(
+			# 		"Drivers must be defined using the"\
+			# 		" component name and the node name separated by '.'\n"\
+			# 		"Example: 'M_cog.M_cog_JNT'"
+			# 	)
 			
 			#Drivers come defined as component.node we need to split this data
-			self.driver_target = driver_full.split('.')[1]
-			self.driver_component = driver_full.split('.')[0]
+			self.driver_target = common_args['driver']
+			# self.driver_component = driver_full.split('.')[0]
 			
 			#Scale drivers also need to be extracted
 			if 'scale_driver' in common_args.keys():
-				self.scale_driver_target =\
-								common_args['scale_driver'].split('.')[1]
-				self.scale_driver_component =\
-								common_args['scale_driver'].split('.')[0]
+				self.scale_driver_target = common_args['scale_driver']
+				# self.scale_driver_component =\
+				# 				common_args['scale_driver'].split('.')[0]
 
 	def add_ctrls_data(self):
 		"""This method should be overwritten by each component type """

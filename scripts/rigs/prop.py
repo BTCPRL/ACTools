@@ -9,9 +9,8 @@ class Prop(rig.Rig):
 			common_args = {
 				'name': 'cog',
 				'side': 'M',
-				# 'type' : 'cog',
-				'driver': 'M_root.M_root_JNT',
-				'scale_driver': 'M_root.M_root_JNT'
+				'driver': 'M_root_JNT',
+				'scale_driver': 'M_root_JNT'
 			}
 		)
 
