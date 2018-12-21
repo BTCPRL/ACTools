@@ -8,7 +8,7 @@ users_root = 'D:/Productions/Users'
 ctrls_shapes_file = 'D:/Dev/CARF/data/controls_shape.json'
 
 #Builder
-#TODO:  better define stages, init and finalize are too generic
+#TODO:  better define stages, and when will these be used
 builder_stages = ['init','template','build', 'finalize']
 
 #Sides for prefixes

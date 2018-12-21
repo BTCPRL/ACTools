@@ -2,7 +2,7 @@ import sys
 import imp 
 import os
 
-from CARF.scripts.maya_core import dependency_graph
+# from CARF.scripts.maya_core import dependency_graph
 from CARF.scripts.maya_core import transforms as trans
 from CARF.scripts.components import component
 
@@ -13,7 +13,8 @@ class Rig(object):
 		self.asset_name = asset_name
 
 		#Private attributes
-		self._components_list = []
+		#A list of "empty" components (components before configure step)
+		self.__components_list = []
 
 		#Empty attributes for clarity of mind
 		self.components = {}
@@ -39,9 +40,8 @@ class Rig(object):
 			}
 		)
 
-		self.dependency_graph = None
-		# self.build_base_grps()
-		# self.root_settings = None
+		#NOTE: dependency_graph removed until better implementation found :(
+		# self.dependency_graph = None 
 	
 	def add_component(self, component_type, common_args, component_args={}):
 		""" Intizializes and stores component object in the rig.
@@ -53,7 +53,7 @@ class Rig(object):
 			common_args, 
 			component_args
 		)
-		self._components_list.append(component_obj)
+		self.__components_list.append(component_obj)
 
 		return component_obj
 	
@@ -68,25 +68,27 @@ class Rig(object):
 		self.root.configure()
 		self.root.add_ctrls_data()
 
-		#Creating the dependency graph, and adding the root as a base
-		self.dependency_graph = dependency_graph.Dependency_graph(
-			graph_name = self.asset_name,
-			graph_root_name = self.root.name
-		)
+		# #Creating the dependency graph, and adding the root as a base
+		# self.dependency_graph = dependency_graph.Dependency_graph(
+		# 	graph_name = self.asset_name,
+		# 	graph_root_name = self.root.name
+		# )
 
 		#Configuring the rest of the components and populating dependency graph
-		for comp in self._components_list:
+		for comp in self.__components_list:
 			#Setting up (or configuring) the component
 			comp.configure()
 			comp.set_component_args()
 			comp.add_ctrls_data()
+
+			#Adding it to the public dictionary of components
 			self.components[comp.name] = comp
 			
-			#Adding the component to the dependency graph
-			self.dependency_graph.add_node(
-				node_name = comp.name,
-				node_parent = comp.driver_component
-			)
+			# #Adding the component to the dependency graph
+			# self.dependency_graph.add_node(
+			# 	node_name = comp.name,
+			# 	node_parent = comp.driver_component
+			# )
 			
 
 	def set_template_data(self, data):
@@ -121,13 +123,26 @@ class Rig(object):
 			grp = trans.Transform(name = name, parent = self.root_grp)
 			setattr(self,grp_var,grp)
 
-	@dependency_graph.travel_graph
-	def assemble_components(self, comp_graph_node):
-		comp_name = str(comp_graph_node)
-		if comp_name != 'M_root':
-			
-			self.components[comp_name].build_component()
-			self.components[comp_name].setup_driver()
+	# @dependency_graph.travel_graph
+	def assemble_components(self):
+		""" Builds all components in the rig
+
+		Order of creation is being dictated by the dictionary order, meaning 
+		there is no order right now, this will require one loop for each action
+		(build, setup drivers, etc...) to ensure all components are created 
+		before each step
+
+		Other option is to loop over __components_list, which would require
+		components to be added in order and a way to "insert" new components 
+		in between existing ones
+		"""
+		# comp_name = str(comp_graph_node)
+		# if comp_name != 'M_root':
+		for component_obj in self.components.values():	
+			component_obj.build_component()
+		
+		for component_obj in self.components.values():	
+			component_obj.setup_driver()
 
 	def build(self):
 		"""This method will be overwritten in each rig type
