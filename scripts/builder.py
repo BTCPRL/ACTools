@@ -202,7 +202,7 @@ class Builder(object):
 		#TODO: implement
 		pass
 		
-	def export_rig_ctrls(self):
+	def export_rig_ctrls_shapes(self):
 		""" Creates a json file containing the shape info for the rig ctrls
 		"""
 		#Get all ctrls under CONTROLS_GRP
