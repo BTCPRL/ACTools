@@ -214,6 +214,9 @@ class Component(object):
 		driver (or drivers) to all the elements that need to be driven
 
 		TODO: Decide on whether or not to support the Dictionary option
+				No? Just one driver per component and special components have 
+				an special component_arg for extra drivers?
+				Only one driver seems to be the most common scenario
 		NOTE: Only the String option is supported for now
 		self.driver_target can be a String or a Dictionary:
 			In the first case, a single transform is created using
@@ -285,6 +288,7 @@ class Component(object):
 
 			self.settings = controls.Control(
 				name='{}_settings'.format(self.name),
+				parent=self.ctrls_grp,
 				side=self.side,
 				shape='settings',
 				color='green'

@@ -157,3 +157,34 @@ class Root(component.Component):
 		
 	# def build_component(self):
 	# 	self.create_hierarchy_grps()
+
+	def setup_settings_ctr(self):
+		""" Adds attributes to interact with different parts of the rig
+		"""
+
+		super(Root, self).setup_settings_ctr()
+
+		#Title, the asset name, this provides no functionality 
+		self.settings.attr_add(
+				attr_type='header',
+				header_val=self.asset_name.upper(),
+			)
+
+		#Vis toggles for main rig groups
+		for attr in ['ctrlVis','geoVis','jntsVis', 'setupVis']:
+			self.settings.attr_add(
+				attr,
+				'bool',
+				default_value=1,
+				hidden=False,
+				keyable=False
+			)
+		
+		#Toggle for selecting the geo
+		self.settings.attr_add(
+				'geoSelect',
+				'bool',
+				default_value=0,
+				hidden=False,
+				keyable=False
+			)
