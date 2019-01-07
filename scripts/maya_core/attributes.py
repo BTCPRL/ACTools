@@ -13,17 +13,24 @@ Common arguments for all functions:
 	attr_name (str) : attribute belonging to node
 """
 
-def _add(node, attr_name, attr_type='slider', default_value=0, min_value=None, 
-	max_value=None, hidden=False, keyable=True, enums = [], **Kwargs):
+def _add(node, attr_name='', attr_type='slider', default_value=0, 
+		 min_value=None, max_value=None, hidden=False, keyable=True, enums=[], 
+		 header_val=None,  **Kwargs):
 	""" Creates a new attribute
 	Args : 
+		attr_name (str) : name of attribute, needed for every type but 'header'
 		attr_type (str) : description of the attribute's functionality.
 					valid values are: [
 						'float' : numeric value with decimals,
 						'long' : numeric value without decimals,
-						'slider' : 'float' attribute with range [0,1] (Default),
+						'enum' : dropdown list of str,
+						
+						# Shortcuts
+
+						'slider' : 'float' attribute with range [0,1],
 						'bool' : a 'long' attribute with range [0,1],
-						'enum' : dropdown list of str
+						'header' : an unkeyable 'enum' attribute
+						'header_val' : string, only used with 'header' type
 					]
 		default_value : starting value for the attribute
 		min_value : lowest possible value the attribute will support
@@ -55,29 +62,50 @@ def _add(node, attr_name, attr_type='slider', default_value=0, min_value=None,
 	#Changing from custom types to maya's equivalent type for the attributes
 	if attr_type in ['float','slider']:
 		maya_type = 'double'
+	
 	elif attr_type == 'bool':
 		maya_type = 'long'
+	
+	elif attr_type == 'header':
+		maya_type = 'enum'
+		attr_name = header_val
+		enums = [header_val]
+		args['en'] = ':'.join(enums)
+		args['niceName'] = ' '
+		args['keyable'] = False
+		keyable = False
+		hidden = False
+	
 	else:
 		maya_type = attr_type
 	
 	#Adding Kwargs
 	args.update(Kwargs)
 
-	return node.addAttr(attr_name, at = maya_type, **args)
+	#Check for forcing a non keyable attr to show up, 'cuz maya
+	if not (keyable or hidden): #DeMorgan!!!
+		return_val  = node.addAttr(attr_name, at = maya_type, **args)
+		node.setAttr(attr_name, cb = True)
+		return return_val
+	else:
+		return node.addAttr(attr_name, at = maya_type, **args)
 
-def _set(node, attr_name, value, **Kwargs):
+def _set(node, attr_name, value=None, **Kwargs):
 	""" Assigns value to the given attribute
 	Args : 
 		value (attribute specific) : value to be assigned
 	"""
-	return node.setAttr(attr_name, value, Kwargs)
+	if value != None:
+		return node.setAttr(attr_name, value, **Kwargs)
+	else:
+		return node.setAttr(attr_name, **Kwargs)
 
 def _get(node, attr_name, **Kwargs):
 	""" Use this to query the attributes' current value
 	Return :
 		(attribute specific) : current value of the given attribute
 	"""
-	return node.getAttr(attr_name, Kwargs)
+	return node.getAttr(attr_name, **Kwargs)
 
 def _lock(node, attr_name, hide=True, **Kwargs):
 	""" Removes access to this attribtue

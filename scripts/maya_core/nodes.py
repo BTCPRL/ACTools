@@ -105,7 +105,7 @@ class Node(object):
 	Attribute methods
 		For more documentation and Args explanation, check attributes.py
 	"""
-	def attr_add(self, attr_name, attr_type='slider', default_value=0, 
+	def attr_add(self, attr_name='', attr_type='slider', default_value=0, 
 		min_value=None, max_value=None, hidden=False, keyable=True, **Kwargs):
 		""" Creates a new attribute """
 		attributes._add(self.pm_node, attr_name, attr_type, default_value, 
@@ -113,9 +113,9 @@ class Node(object):
 
 	def attr_get(self, attr_name, **Kwargs):
 		"""Returns the attribute value"""
-		return attributes._get(self.pm_node, attr_name, Kwargs)
+		return attributes._get(self.pm_node, attr_name, **Kwargs)
 		
-	def attr_set(self, attr_name, value, **Kwargs):
+	def attr_set(self, attr_name, value=None, **Kwargs):
 		"""Sets the specified value in the given attribute"""
 		attributes._set(self.pm_node, attr_name, value, **Kwargs)
 	
