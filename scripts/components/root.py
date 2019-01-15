@@ -48,7 +48,7 @@ class Root(component.Component):
 		# Default values
 		self.local_tweaks = 0
 		self.create_settings_ctr = True
-		self.settings_driver_target = 'M_root_JNT'
+		self.settings_driver = 'M_root_JNT'
 
 	def add_ctrls_data(self):
 		self.add_component_controler(

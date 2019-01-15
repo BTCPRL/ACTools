@@ -10,7 +10,8 @@ class Prop(rig.Rig):
 				'name': 'cog',
 				'side': 'M',
 				'driver': 'M_root_JNT',
-				'scale_driver': 'M_root_JNT'
+				'scale_driver': 'M_root_JNT',
+				'settings_driver':'M_cog_JNT'
 			}
 		)
 

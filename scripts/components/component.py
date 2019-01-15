@@ -23,8 +23,6 @@ class Component(object):
 		#Private attributes
 		#Dependency graph
 		self._hierarchy_graph = None
-		# Arguments that can be set by the user, specified in each component
-		self._setteable_component_args = []
 		
 		#Data for building
 		self.component_ctrls_data = {}
@@ -38,10 +36,20 @@ class Component(object):
 		#Drivers
 		self.driver_target = None
 		self.scale_driver_target = None
-		self.settings_driver_target = None
+		self.settings_driver = None
 		self.main_driver = None
 		# self.driver_component = None
 		# self.scale_driver_component = None
+
+		# Arguments that can be set by the user, specified in each component
+		self._setteable_common_args = [
+			'driver',
+			'scale_driver',
+			'settings_driver',
+			'position'
+		]
+		self._setteable_component_args = []
+
 
 		#Component top groups
 		self.ctrls_grp = None
@@ -59,10 +67,22 @@ class Component(object):
 		arguments defined in _setteable_component_args, if an argument requires
 		some logic before it can be stored, it shouldn't be part of this list
 		and instead should be treated individually
+
+		TODO:
+			This setup renders the difference between common and component args
+			kinda useless doesn't it??
 		"""
-		for arg in self.component_args.keys():
-			if arg in self._setteable_component_args:
+		main_args = self._setteable_common_args
+		comp_args = self._setteable_component_args
+		user_args = main_args + comp_args
+		for arg in user_args:
+			if arg in self.component_args.keys():
 				setattr(self, arg, self.component_args[arg])
+			elif arg in self.common_args.keys():
+				setattr(self, arg, self.common_args[arg])
+		# for arg in self.component_args.keys():
+		# 	if arg in user_args:
+		# 		setattr(self, arg, self.component_args[arg])
 
 	def configure(self):
 		""" Sets the component's attributes based on the user input
@@ -87,11 +107,13 @@ class Component(object):
 		self._hierarchy_graph = dependency_graph.Dependency_graph(
 			graph_name = self.name)
 		
-		#Getting user input
-		if 'position' in common_args.keys():
-			self.position = common_args['position']
-		else:
-			self.position = [0,0,0,0,0,0]
+		#Defaults
+		self.position = [0,0,0,0,0,0]
+		
+		# #Getting user input
+		# if 'position' in common_args.keys():
+		# 	self.position = common_args['position']
+		# else:
 
 		# Adding the drivers
 		# Only the Root component can have no driver
@@ -295,11 +317,21 @@ class Component(object):
 			)
 
 			driver = self.main_driver
-			if self.settings_driver_target:
-				driver = self.settings_driver_target
+			if self.settings_driver:
+				driver = self.settings_driver
 			self.settings.constrain_to(driver, 'parent', mo=False)
 			self.settings.constrain_to(driver, 'scale', mo=False)
 			self.settings.attr_lock(['t','r','s','v'])
+
+	def add_setting(self, attr_name, attr_type='slider', **Kwargs):
+		""" Shortcut to add an attribute to the settings ctrl
+		TODO: better docs, expand implementation?
+		"""
+		self.settings.attr_add(
+			attr_name=attr_name,
+			attr_type=attr_type,
+			**Kwargs
+		)
 
 	def solve(self, template=False): 
 		"""Adds the logic to the component
