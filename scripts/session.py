@@ -37,7 +37,7 @@ class Session(object):
 		self.user_backups_path = os.path.join(self.user_path, 
 											  '__assets_backups__')
 		if not os.path.isdir(self.user_backups_path):
-			create_folder(self.user_backups_path)
+			check_create_folder(self.user_backups_path)
 
 		#Empty attributes for clarity of mind
 		self.project_name = None
@@ -45,9 +45,10 @@ class Session(object):
 		self.project_set = False
 
 		#Asset related attributes
-		self.asset_set = False
 		self.asset_name = None
-		
+		self.asset_set = False
+		self.asset_directory_created = False
+
 		if project_name:
 			self.set_project()
 		#If asset_name is provided, set the data
@@ -92,7 +93,7 @@ class Session(object):
 			print '##Warning: %s already exists as a project,'\
 			' no folders created' % project_name
 		else:
-			create_folder(project_path)
+			check_create_folder(project_path)
 
 		self.create_directory_tree(project_path, g_data.project_folders)
 
@@ -108,23 +109,20 @@ class Session(object):
 		"""
 		for folder in folders_dictionary:
 			folder_path = os.path.join(base_path, folder)
-			create_folder(folder_path)
+			check_create_folder(folder_path)
 			if folders_dictionary[folder]:
 				self.create_directory_tree(folder_path, 
 					folders_dictionary[folder])
 
-	def set_asset(self, asset_name, asset_type, rig_type, checkout = False):
-		"""Creates all the required folders for an asset build
+	def set_asset(self, asset_name, asset_type, rig_type):
+		""" Changes the current session asset. 
+		This implies updating all the 'paths' for this session. It checks
+		whether or not this paths are valid by checking if the asset directory
+		exists
 		"""
 		if not self.project_set :
 			raise Exception('Project data not found. Please set project'\
 							' before setting the asset')
-
-		# Instead of creating the folders, optionally we can check out latest
-		# checked in data
-		if checkout:
-			self.check_out_asset()
-			return False
 
 		#Validation of arguments
 		if not (type(asset_name) is str or type (asset_type) is str):
@@ -136,33 +134,49 @@ class Session(object):
 				'types are: %s' % (rig_type, g_data.supported_rig_types)
 			)
 		
+		#Updating the asset name and type
+		self.asset_name = asset_name
+		self.asset_type = asset_type
+		
+		asset_path = os.path.join(self.user_path, asset_name)
+		
+		if not os.path.exists(asset_path):
+			self.asset_directory_created = False
+			
+		self.paths['asset'] = asset_path
+		
 		#Set geo path
 		self.paths['geo'] = os.path.join(
 			self.paths['final'], asset_type, 
 			asset_name, 'Geo', '%s.ma' % asset_name
 		)
-		#Setting the asset data
-		self.asset_name = asset_name
-		self.asset_type = asset_type
-		asset_path = os.path.join(self.user_path, asset_name)
 
-		#Check for asset folder
-		create_folder(asset_path)
-		self.create_directory_tree(asset_path, g_data.asset_dev_folders)
-		
-		self.paths['asset'] = asset_path
 		#Add asset dev folders to paths
 		for folder in g_data.asset_dev_folders:
 			f_path = os.path.join(self.paths['asset'], folder)
 			self.paths[folder] = f_path
+		
+		build_path = os.path.join(asset_path, '%s_build.py' % self.asset_name)
+		self.paths['build'] = build_path
+		
+		self.asset_set = True
+	
+	def create_asset_workspace(self):
+		""" Creates the working directories for the current assets
+		It will create the asset_dev_folders directory tree found in 
+		global_data.py and it will create the asset_build.py file
+		"""
+		#Check for asset folder
+		check_create_folder(asset_path)
+		self.create_directory_tree(asset_path, g_data.asset_dev_folders)
 		
 		#Check for asset_build.py
 		build_path = os.path.join(asset_path, '%s_build.py' % self.asset_name)
 		if not os.path.isfile(build_path):
 			self.create_build_file(build_path, rig_type)
 		
-		self.paths['build'] = build_path
-		self.asset_set = True
+		self.asset_directory_created = True
+		
 		
 	def check_in_asset(self):
 		"""Saves the current asset dev folders into the checkins directory.
@@ -176,7 +190,7 @@ class Session(object):
 		#Check and creates Chekins directory
 		checkin_path = os.path.join(self.paths['checkin'], self.asset_type,
 									self.asset_name)
-		create_folder(checkin_path)
+		check_create_folder(checkin_path)
 
 		#Get the next version number			
 		versions = [int(x) for x in os.listdir(checkin_path)]
@@ -259,19 +273,19 @@ class Session(object):
 		#Check and creates the asset directory in the final drive
 		final_path = os.path.join(self.paths['final'], self.asset_type,
 								  self.asset_name)
-		create_folder(final_path)
+		check_create_folder(final_path)
 
 		rig_path = os.path.join(final_path, 'Rig')
-		create_folder(rig_path)			
+		check_create_folder(rig_path)			
 		
 		archive_path = os.path.join(rig_path,'Archive')
-		create_folder(archive_path)
+		check_create_folder(archive_path)
 
 		#Get the next version number			
 		versions = [int(x) for x in os.listdir(archive_path)]
 		new_version = 0 if versions == [] else max(versions)+1
 		version_path = os.path.join(archive_path, str(new_version).zfill(3))
-		create_folder(version_path)
+		check_create_folder(version_path)
 
 		for folder_path in [rig_path, version_path]:
 			file_path = os.path.join(folder_path,'%s_rig.ma' % self.asset_name)
@@ -322,7 +336,7 @@ def open_in_os(path):
 	""" Relative to each OS, opens given path """
 	os.startfile(path)
 
-def create_folder(folder_path):
+def check_create_folder(folder_path):
 	"""Checks for existing folder, if not found, creates it """
 	if not os.path.exists(folder_path):
 		os.mkdir(folder_path)
