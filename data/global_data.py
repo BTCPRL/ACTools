@@ -2,12 +2,12 @@
 Global variables for CARF
 """
 
-#System
+###System
 productions_root = 'D:/Productions/Projects'
 users_root = 'D:/Productions/Users'
 ctrls_shapes_file = 'D:/Dev/CARF/data/controls_shape.json'
 
-#Builder
+####Builder
 #TODO:  better define stages, and when will these be used
 builder_stages = ['init','template','build', 'finalize']
 
@@ -15,6 +15,7 @@ builder_stages = ['init','template','build', 'finalize']
 left = 'L'
 right = 'R'
 center = 'M'
+
 #Sides collection for loops
 sides = [left, right]
 positions_prefifx = [left, center, right]
@@ -22,6 +23,10 @@ positions_prefifx = [left, center, right]
 #Validation lists
 supported_rig_types = ['prop', 'layout', 'character','set'] #TODO Get this from directory?
 
+#Rig groups
+rig_base_groups = ['ctrls', 'geo', 'skeleton', 'setup']
+
+###Controls
 #Colors for controllers
 #Dictionary Made up of aribitray description-index pairs
 colors_dict = {
@@ -54,6 +59,7 @@ template_sides_color = {
 }
 
 
+###Directories
 #Project folder structure
 # Dictionaries structure: Folder name(key) : another folder dictionary (value)
 ## use None as a value for a directory with no sub directories
