@@ -2,6 +2,9 @@ from CARF.scripts.components import component
 from CARF.scripts.maya_core import controls
 from CARF.scripts.maya_core import transforms as trans
 
+# Global data import
+from CARF.data import global_data as g_data
+
 class Root(component.Component):
 	"""
 	Root component.
@@ -171,11 +174,13 @@ class Root(component.Component):
 			)
 
 		#Vis toggles for main rig groups
-		for attr in ['ctrlVis','geoVis','jntsVis', 'setupVis']:
+		for grp_name in g_data.rig_base_groups:
+			attr = '%sVis' % grp_name
+			dv = 1 if grp_name in ['geo', 'ctrls'] else 0
 			self.settings.attr_add(
 				attr,
 				'bool',
-				default_value=1,
+				default_value=dv,
 				hidden=False,
 				keyable=False
 			)
