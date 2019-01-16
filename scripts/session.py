@@ -1,3 +1,6 @@
+""" Contains Session class, used to manage the asset's workspace
+"""
+
 # Sys imports
 import os
 import shutil

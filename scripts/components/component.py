@@ -1,3 +1,8 @@
+""" Provides common functionallity to all components, should be inherited. 
+
+It contains the create method, which will dynamically create a component based
+on a given type
+"""
 import importlib
 
 from CARF.scripts.maya_core import controls
@@ -162,7 +167,7 @@ class Component(object):
 		"""
 		self.ctrls_grp = trans.Transform(
 			name = '%s_ctrls_GRP' % self.name,
-			parent = 'CONTROLS_GRP'
+			parent = 'CTRLS_GRP'
 		)
 		
 		self.setup_grp = trans.Transform(
