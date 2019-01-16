@@ -4,7 +4,11 @@ import os
 
 # from CARF.scripts.maya_core import dependency_graph
 from CARF.scripts.maya_core import transforms as trans
+from CARF.scripts.maya_core import nodes
 from CARF.scripts.components import component
+
+# Global data import
+from CARF.data import global_data as g_data
 
 class Rig(object):
 	"""docstring for Rig"""
@@ -19,14 +23,13 @@ class Rig(object):
 		#Empty attributes for clarity of mind
 		self.components = {}
 		self.template_data = None
-		self.root_grp = None
+		self.top_grp = None
 		self.root_ctr = None
 		self.geo_grp = None
 		self.ctrls_grp = None
 		self.setup_grp = None
 		self.skeleton_grp = None
-		self.base_grps = ['root_grp', 'geo_grp', 'ctrls_grp', 
-						  'setup_grp', 'skeleton_grp']
+		self.base_grps = g_data.rig_base_groups
 
 		self.root = component.create(
 			component_type = 'root',
@@ -112,15 +115,17 @@ class Rig(object):
 		"""	Creates top groups for the rig
 		parent groups are hard coded as they should be the same for every rig
 		"""
-		#Root
-		self.root_grp = trans.Transform(name = '%s_ROOT' % self.asset_name)
+		#Top most group
+		self.top_grp = trans.Transform(name = '_%s' % self.asset_name.upper())
 
-		grp_names = ['GEO_GRP', 'CONTROLS_GRP', 'SETUP_GRP', 'SKELETON_GRP']
-
-		#Create all the other base groups and parent them under root
-		for grp_var, name in zip(self.base_grps[1:], grp_names):
-			grp = trans.Transform(name = name, parent = self.root_grp)
-			setattr(self,grp_var,grp)
+		#Create all the other base groups and parent them under top group
+		for grp_name in self.base_grps:
+			grp_attr = '%s_grp' % grp_name
+			grp = trans.Transform(name=grp_attr.upper(), parent=self.top_grp)
+			setattr(self, grp_attr, grp)
+		
+		self.geo_grp.attr_set('overrideEnabled', 1)
+		self.geo_grp.attr_set('overrideDisplayType', 2)
 
 	# @dependency_graph.travel_graph
 	def assemble_components(self):
@@ -159,18 +164,30 @@ class Rig(object):
 		self.root_ctr = self.root.ctrls['M_root_CTR']
 		self.root.setup_settings_ctr()
 
+		#Setting up vis toggles for base groups
+		for grp in self.base_grps:
+			vis_attr = '%sVis' % grp
+			rig_grp = getattr(self, '%s_grp' % grp)
+			self.root.settings.attr_connect(vis_attr, rig_grp, 'v')
+
+		#Setting up geo selectable toggle
+		geo_condition = nodes.Node(
+			node_type='condition',
+			name='geo_selectable'
+		)
+		geo_condition.attr_set('secondTerm', 1)
+		geo_condition.attr_set('colorIfTrueR', 0)
+		geo_condition.attr_set('colorIfTrueR', 2)
+		self.root.settings.attr_connect('geoSelect', 
+										 geo_condition, 'firstTerm')
 
 	def final_touches(self):
 		"""
 		"""
 		to_hide = [self.setup_grp, self.skeleton_grp]
 		for grp in self.base_grps:
-			grp_obj = getattr(self, grp)
-			if grp_obj in to_hide:
-				pass
-				# grp_obj.attr_set('v',0) #TODO: bring when settings ctrl added
+			grp_obj = getattr(self, '%s_grp' % grp)
 			grp_obj.attr_lock(['t','s','r','v'])
-		self.geo_grp.attr_set('overrideEnabled',1)
-		self.geo_grp.attr_set('overrideDisplayType',2)
+
 		for comp_name in self.components.keys():
 			self.components[comp_name].finalize_component()
