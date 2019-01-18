@@ -411,8 +411,11 @@ class Component(object):
 		new_ctr = controls.Control(**data)
 		
 		#Dynamically adding the new ctr as an attribute for the component
-		ctr_attr_name = '{}_{}_ctr'.format(ctr_side, ctr_name).lower()
+		ctr_attr_name = '{}_{}_CTR'.format(ctr_side, ctr_name)
 		setattr(self, ctr_attr_name, new_ctr)
+		# NOTE: Adding these attributes capitalized goes against convention, 
+		# but it will be confusing to use the same name in lowercase for some
+		#  cases and capitalized for other
 		self.ctrls[str(graph_node)] = new_ctr
 
 		#Creating optional driven joint
@@ -425,7 +428,7 @@ class Component(object):
 			)
 			
 			#Dynamically adding the new joint as an attribute for the component
-			setattr(self, new_jnt.full_name.lower(), new_jnt)
+			setattr(self, new_jnt.full_name, new_jnt)
 
 			if joint_connection in ['parentConstraint', 'follow']:
 				new_ctr.last_ctr.constrain(new_jnt,'parent', mo = 0)

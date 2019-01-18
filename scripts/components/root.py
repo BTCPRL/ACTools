@@ -104,11 +104,11 @@ class Root(component.Component):
 	def solve(self):
 		""" Will constraint the root jnt to the last ctrl
 		"""
-		last_ctr_obj = self.m_local_ctr.last_ctr
+		last_ctr_obj = self.M_local_CTR.last_ctr
 
 		# Constrain skeleton
-		last_ctr_obj.constrain(self.m_root_jnt, 'parent')
-		last_ctr_obj.constrain(self.m_root_jnt, 'scale')
+		last_ctr_obj.constrain(self.M_root_JNT, 'parent')
+		last_ctr_obj.constrain(self.M_root_JNT, 'scale')
 
 		# Create and constrain transforms output
 		self.output_xform = trans.Transform(
