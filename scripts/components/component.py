@@ -150,6 +150,10 @@ class Component(object):
 		"""This method should be overwritten by each component type """
 		pass
 	
+	def add_jnts_data(self):
+		"""This method should be overwritten by each component type """
+		pass
+	
 	def create_component_base(self):
 		"""Creates common groups for all components
 		
@@ -187,7 +191,7 @@ class Component(object):
 
 		self.skeleton_grp = trans.Transform(
 			name = '%s_skeleton_GRP' % self.name,
-			parent = self.setup_grp
+			parent = 'SKELETON_GRP'
 		)
 
 	def add_component_controler(self, ctr_data):
@@ -233,6 +237,25 @@ class Component(object):
 		self._hierarchy_graph.add_node(ctr_name, ctr_parent)
 
 		self.component_ctrls_data[ctr_name] = ctr_data
+	
+	def add_component_jnt(self, jnt_data):
+		""" TODO: implement, Docs
+
+		idea:
+
+		Require same thing as ctr_data requires. Also require a parent
+
+		Optional args:
+		ctr_driver (str): Ctr name to parent constraint to
+		scale_driver (bool): If True and ctr_driver, jnt gets scale_constrained too
+
+		Have a list of jnts per component, in order?
+		Also need to be able to store the parent information for later
+
+		Should this work with another hierarchy graph as well then?
+		"""
+
+		pass
 
 	def setup_driver(self):
 		""" Connects each of the component's drivers to their respective master
@@ -338,6 +361,16 @@ class Component(object):
 			**Kwargs
 		)
 
+	def assemble_skeleton(self):
+		""" TODO: Docs, implement
+
+		idea:
+			For each jnt in self.jnts.... find their parent and parent it?
+			This is useless for all joints except the first one if the 
+			hierarchy graph is used... unless components with no 'top_jnt' are
+			allowed, in that case hierarchy graph is not needed when creating
+			the jnts
+		"""
 	def solve(self, template=False): 
 		"""Adds the logic to the component
 		Args:

@@ -140,6 +140,7 @@ class Session(object):
 		#Updating the asset name and type
 		self.asset_name = asset_name
 		self.asset_type = asset_type
+		self.rig_type = rig_type
 		
 		asset_path = os.path.join(self.user_path, asset_name)
 		
@@ -170,13 +171,14 @@ class Session(object):
 		global_data.py and it will create the asset_build.py file
 		"""
 		#Check for asset folder
+		asset_path=self.paths['asset']
 		check_create_folder(asset_path)
 		self.create_directory_tree(asset_path, g_data.asset_dev_folders)
 		
 		#Check for asset_build.py
 		build_path = os.path.join(asset_path, '%s_build.py' % self.asset_name)
 		if not os.path.isfile(build_path):
-			self.create_build_file(build_path, rig_type)
+			self.create_build_file(build_path, self.rig_type)
 		
 		self.asset_directory_created = True
 		

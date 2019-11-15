@@ -145,6 +145,9 @@ class Rig(object):
 		for component_obj in self.components.values():	
 			component_obj.build_component()
 		
+		for component_obj in self.components.values():
+			component_obj.assemble_skeleton()
+
 		for component_obj in self.components.values():	
 			component_obj.setup_driver()
 		
