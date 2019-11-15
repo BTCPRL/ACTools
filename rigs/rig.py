@@ -2,10 +2,10 @@ import sys
 import imp 
 import os
 
-# from CARF.scripts.maya_core import dependency_graph
-from CARF.scripts.maya_core import transforms as trans
-from CARF.scripts.maya_core import nodes
-from CARF.scripts.components import component
+# from CARF.maya_core import dependency_graph
+from CARF.maya_core import transforms as trans
+from CARF.maya_core import nodes
+from CARF.components import component
 
 # Global data import
 from CARF.data import global_data as g_data

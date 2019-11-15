@@ -1,4 +1,4 @@
-from CARF.scripts.rigs import rig
+from CARF.rigs import rig
 class Character(rig.Rig):
 	"""docstring for Character"""
 	def __init__(self, asset_name):

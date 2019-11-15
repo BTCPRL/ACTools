@@ -1,6 +1,6 @@
-from CARF.scripts.components import static
-from CARF.scripts.maya_core import controls
-from CARF.scripts.maya_core import transforms as trans
+from CARF.components import static
+from CARF.maya_core import controls
+from CARF.maya_core import transforms as trans
 
 class Cog(static.Static):
     """Cog component

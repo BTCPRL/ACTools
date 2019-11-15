@@ -1,6 +1,6 @@
-from CARF.scripts.components import component
-from CARF.scripts.maya_core import controls
-from CARF.scripts.maya_core import transforms as trans
+from CARF.components import component
+from CARF.maya_core import controls
+from CARF.maya_core import transforms as trans
 
 # Global data import
 from CARF.data import global_data as g_data

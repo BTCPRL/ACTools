@@ -6,7 +6,7 @@ import os
 import shutil
 
 # Module imports
-from CARF.scripts.maya_core import maya_files
+from CARF.maya_core import maya_files
 
 # Global data import
 from CARF.data import global_data as g_data

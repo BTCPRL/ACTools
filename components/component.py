@@ -5,10 +5,10 @@ on a given type
 """
 import importlib
 
-from CARF.scripts.maya_core import controls
-from CARF.scripts.maya_core import joints
-from CARF.scripts.maya_core import dependency_graph
-from CARF.scripts.maya_core import transforms as trans
+from CARF.maya_core import controls
+from CARF.maya_core import joints
+from CARF.maya_core import dependency_graph
+from CARF.maya_core import transforms as trans
 
 class Component(object):
 	"""docstring for Component"""

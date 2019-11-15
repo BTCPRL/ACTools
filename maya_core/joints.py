@@ -2,7 +2,7 @@ import pymel.core as pm
 import maya.cmds as cmds
 
 from CARF.data import global_data as g_data
-from CARF.scripts.maya_core import transforms as trans
+from CARF.maya_core import transforms as trans
 
 class Joint(trans.Transform):
     """docstring for Joint."""

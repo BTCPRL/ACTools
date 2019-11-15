@@ -1,4 +1,4 @@
-from CARF.scripts.rigs import rig
+from CARF.rigs import rig
 class Prop(rig.Rig):
 	"""docstring for Prop"""
 	def __init__(self, asset_name):

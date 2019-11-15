@@ -1,4 +1,4 @@
-from CARF.scripts.rigs import rig
+from CARF.rigs import rig
 reload(rig)
 class Layout(rig.Rig):
     """docstring for Layout"""

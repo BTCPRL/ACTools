@@ -9,7 +9,7 @@ import maya.cmds as cmds
 from CARF.data import global_data as g_data
 
 #Modules improt
-from CARF.scripts.maya_core import transforms as trans
+from CARF.maya_core import transforms as trans
 reload(trans)
 class Control(trans.Transform):
 	"""docstring for Control"""
