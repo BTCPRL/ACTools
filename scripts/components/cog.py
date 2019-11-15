@@ -6,8 +6,8 @@ class Cog(static.Static):
     """Cog component
     Has one ctrl, which could have tweak ctrls
     """
-    # def __init__(self, common_args, component_args={}):
-    # 	super(Cog, self).__init__(common_args)
+    def __init__(self, common_args, component_args={}):
+    	super(Cog, self).__init__(common_args)
     
     def configure(self):
         """

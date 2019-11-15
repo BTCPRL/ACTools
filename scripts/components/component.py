@@ -43,8 +43,6 @@ class Component(object):
 		self.scale_driver_target = None
 		self.settings_driver = None
 		self.main_driver = None
-		# self.driver_component = None
-		# self.scale_driver_component = None
 
 		# Arguments that can be set by the user, specified in each component
 		self._setteable_common_args = [
@@ -85,9 +83,7 @@ class Component(object):
 				setattr(self, arg, self.component_args[arg])
 			elif arg in self.common_args.keys():
 				setattr(self, arg, self.common_args[arg])
-		# for arg in self.component_args.keys():
-		# 	if arg in user_args:
-		# 		setattr(self, arg, self.component_args[arg])
+
 
 	def configure(self):
 		""" Sets the component's attributes based on the user input
@@ -115,26 +111,12 @@ class Component(object):
 		#Defaults
 		self.position = [0,0,0,0,0,0]
 		
-		# #Getting user input
-		# if 'position' in common_args.keys():
-		# 	self.position = common_args['position']
-		# else:
-
 		# Adding the drivers
 		# Only the Root component can have no driver
 		#TODO: What if driver-less components are actually allowed?
 		if 'Root' not in str(type(self)):
 			if 'driver' not in common_args:
 				raise Exception('Please provide a driver')
-			
-			# driver_full = 
-
-			# if len(driver_full.split('.')) != 2:
-			# 	raise Exception(
-			# 		"Drivers must be defined using the"\
-			# 		" component name and the node name separated by '.'\n"\
-			# 		"Example: 'M_cog.M_cog_JNT'"
-			# 	)
 			
 			#Drivers come defined as component.node we need to split this data
 			self.driver_target = common_args['driver']
@@ -143,8 +125,6 @@ class Component(object):
 			#Scale drivers also need to be extracted
 			if 'scale_driver' in common_args.keys():
 				self.scale_driver_target = common_args['scale_driver']
-				# self.scale_driver_component =\
-				# 				common_args['scale_driver'].split('.')[0]
 
 	def add_ctrls_data(self):
 		"""This method should be overwritten by each component type """

@@ -178,7 +178,6 @@ def add_to_controls_shape(ctr_name):
 	""" Adds control to control shape file
 	"""
 	#get data
-	# data = get_curve_data(control)
 	ctr_dictionary = export_ctrl_shape(ctr_name)
 
 	#Open Json file and Merge dictionaries

@@ -1,7 +1,6 @@
 import pymel.core as pm
 import maya.cmds as cmds
 
-# from CARF.scripts.maya_core import nodes
 """
 Module to manage creation, editing and connecting of Maya attributes.
 

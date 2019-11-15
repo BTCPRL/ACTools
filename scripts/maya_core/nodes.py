@@ -20,17 +20,11 @@ class Node(object):
 		self.pm_node = None
 		self.added_attributes = {}
 
-		# node_name = name
-		# prefix = node_name.split('_')[0]
-
 		#side is None for ROOT and top level groups
 		if self.side:
 			if self.side not in g_data.positions_prefifx:
 				raise Exception('side has to be one of the following: '\
 					'%s' % g_data.positions_prefifx )
-				
-		# elif prefix in g_data.positions_prefifx:
-		# 		self.side = prefix
 		
 		#Supported types dictionary
 		#Format: {name: [suffix, maya type]}
@@ -84,9 +78,6 @@ class Node(object):
 			attributes._set(node, 'operation', auto_detect_nodes[maya_type])
 
 		self.set_pm_node(node)
-
-	# def __repr__(self):
-	# 	return self.name
 	
 	def __str__(self):
 		return self.full_name

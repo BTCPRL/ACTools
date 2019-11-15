@@ -81,9 +81,6 @@ project_folders = {
 }
 
 #Asset folder structure
-# asset_steps_folders = {
-#     '':''
-# }
 asset_dev_folders = {
     'template': None,
     'weights': None,
