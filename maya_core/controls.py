@@ -119,7 +119,7 @@ class Control(trans.Transform):
         """Description
         Args:
                 color (str) : if passed as a string, it can be one of the following
-                        options: 'blue', 'red', 'yellow', 'green', 'pink'. 
+                        options: 'blue', 'red', 'yellow', 'green', 'pink'.
                         Prefixes available for the options: 'light_' and 'dark_'
                         Examples: 'dark_red', 'light_green', 'pink'
                 color (int) : if passed as an int, it represents the index value of
@@ -158,6 +158,22 @@ def get_curve_data(shape):
     curve_data = [curve_degree, curve_form, curve_points]
 
     return curve_data
+
+
+def set_ctrl_shape(ctr_name, shape_info):
+    """ Moves the shape's CVs into the given world position
+    :args:
+    shape_info (dict): 
+            Dictionary with a world position for each of the ctrl's cvs
+    """
+        if not cmds.objExists(ctr_name):
+            print '%s was not found, shapes not imported.' % ctr_name
+            return False
+
+        for shape in shape_info:
+            points = shape_info[shape]['points']
+            for i, p in enumerate(points):
+                cmds.xform('%s.cv[%i]' % (shape, i), os=1, ws=0, t=p)
 
 
 def export_ctrl_shape(ctr_name):

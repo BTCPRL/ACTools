@@ -16,7 +16,7 @@ from CARF.maya_core import controls
 
 
 class Builder(object):
-    """ 
+    """
     Handles the build process of a given asset, requires a session object with
     paths information. It will create a Rig object based on each asset's build
     code.
@@ -58,7 +58,7 @@ class Builder(object):
         self.rig.configure_rig()
 
     def setup_rig_base(self):
-        """ Builds base groups and root controller. 
+        """ Builds base groups and root controller.
         Sets rig_base attribute
         """
         self.rig.build_base_grps()
@@ -66,7 +66,7 @@ class Builder(object):
         self.rig_base = True
 
     def import_geo(self):
-        """Imports the asset geo to the scene. 
+        """Imports the asset geo to the scene.
         If there's a rig base, it parents the imported geo under GEO_GRP
         """
         new_nodes = maya_files.import_file(self.session_obj.paths['geo'])
@@ -103,10 +103,6 @@ class Builder(object):
     def build_rig_template(self):
         """Builds the rig template
         Sets the current stage to template and forces a new maya scene
-        TODO: some of these are just direct calls to rig.method(). If so, why
-        not just use the rig calls? at the end of the day, the user will be
-        editing a class that inherits from rig, no need to add extra steps to
-        builder since the user will not have direct access to them...right?
         """
         self.set_stage('template')
 
@@ -165,7 +161,7 @@ class Builder(object):
 
     def build_rig(self):
         """ Builds the final rig.
-        This will create a new scene and a new instance of the rig object. 
+        This will create a new scene and a new instance of the rig object.
                 Don't use this if building step by step.
         Executed steps:
                 Makes a new scene
@@ -250,13 +246,7 @@ class Builder(object):
                 file_read = open(file_path, 'r')
                 ctrls_data = json.load(file_read)
                 for ctr in ctrls_data.keys():
-                    if cmds.objExists(ctr):
-                        for shape in ctrls_data[ctr].keys():
-                            points = ctrls_data[ctr][shape]['points']
-                            for i, p in enumerate(points):
-                                cmds.xform('%s.cv[%i]' % (shape, i), os=1,
-                                           ws=0, t=p)
-                    else:
-                        print '%s was not found, shapes not imported.' % ctr
+                    ctr_shape_info = ctrls_data[ctr]
+                    controls.set_ctrl_shape(ctr, ctr_shape_info)
             else:
                 print '###WARNING: Could not find shapes.json file'
