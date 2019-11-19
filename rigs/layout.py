@@ -1,7 +1,10 @@
 from CARF.rigs import rig
 reload(rig)
+
+
 class Layout(rig.Rig):
     """docstring for Layout"""
+
     def __init__(self, asset_name):
         super(Layout, self).__init__(asset_name)
 
@@ -14,6 +17,6 @@ class Layout(rig.Rig):
     def build(self):
         super(Layout, self).build()
         self.root_ctr.constrain(
-            target = self.geo_grp,
-            constraint_type = 'parent'
+            target=self.geo_grp,
+            constraint_type='parent'
         )

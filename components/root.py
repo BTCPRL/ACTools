@@ -5,145 +5,145 @@ from CARF.maya_core import transforms as trans
 # Global data import
 from CARF.data import global_data as g_data
 
+
 class Root(component.Component):
-	"""
-	Root component.
-	It carries the top groups information. Creates top level controlers and 
-	settings ctrl
+    """
+    Root component.
+    It carries the top groups information. Creates top level controlers and 
+    settings ctrl
 
-	Different from other components in the sense that it has to be created
-	before any other component
-	
-	Args:
-		component_args (dict):
-			'asset_name' (str): Asset's name, this is REQUIRED
-			'local_tweaks' (int): Number of ctrls under the root (default 1)
-	"""
-	def __init__(self, common_args, component_args={}):
-		super(Root, self).__init__(common_args, component_args)
-		# Private attributes
-		self._output_name = None
-		
-		# Root attributes
-		self.asset_name = None
-		self.local_tweaks = None
-		self.output_xform = None
+    Different from other components in the sense that it has to be created
+    before any other component
 
+    Args:
+            component_args (dict):
+                    'asset_name' (str): Asset's name, this is REQUIRED
+                    'local_tweaks' (int): Number of ctrls under the root (default 1)
+    """
 
-	def configure(self):
-		"""
-		"""
-		super(Root, self).configure()
+    def __init__(self, common_args, component_args={}):
+        super(Root, self).__init__(common_args, component_args)
+        # Private attributes
+        self._output_name = None
 
-		# Args Validation 
-		if 'asset_name' in self.component_args.keys():
-			self.asset_name = self.component_args['asset_name']
-		else:
-			raise Exception('Please provide an asset_name')
-		
-		# Private attributes
-		self.template_data = self.get_template_data()
-		self._output_name = '{}_out_XFORM'.format(self.name)
-		self._setteable_component_args = [
-			'local_tweaks'
-		]
-		
-		# Default values
-		self.local_tweaks = 0
-		self.create_settings_ctr = True
-		self.settings_driver = 'M_root_JNT'
+        # Root attributes
+        self.asset_name = None
+        self.local_tweaks = None
+        self.output_xform = None
 
-	def add_ctrls_data(self):
-		self.add_component_controler(
-			ctr_data = {
-				'name':'root',
-				'side':'M',
-				'color':'dark_red',
-				'shape':'root',
-				'parent':self.ctrls_grp,
-				'add_joint':'add'
-			}
-		)
+    def configure(self):
+        """
+        """
+        super(Root, self).configure()
 
-		self.add_component_controler(
-			ctr_data = {
-				'name':'local',
-				'side':'M',
-				'size': 0.8,
-				'color':'dark_yellow',
-				'shape':'arrow',
-				'parent':'M_root_CTR',
-				'tweak_ctrls': self.local_tweaks
-			}
-		)
-	
-	def solve(self):
-		""" Will constraint the root jnt to the last ctrl
-		"""
-		last_ctr_obj = self.M_local_CTR.last_ctr
+        # Args Validation
+        if 'asset_name' in self.component_args.keys():
+            self.asset_name = self.component_args['asset_name']
+        else:
+            raise Exception('Please provide an asset_name')
 
-		# Constrain skeleton
-		last_ctr_obj.constrain(self.M_root_JNT, 'parent')
-		last_ctr_obj.constrain(self.M_root_JNT, 'scale')
+        # Private attributes
+        self.template_data = self.get_template_data()
+        self._output_name = '{}_out_XFORM'.format(self.name)
+        self._setteable_component_args = [
+            'local_tweaks'
+        ]
 
-		# Create and constrain transforms output
-		self.output_xform = trans.Transform(
-			name = self._output_name,
-			side = self.side,
-			parent = self.output_grp
-		)
+        # Default values
+        self.local_tweaks = 0
+        self.create_settings_ctr = True
+        self.settings_driver = 'M_root_JNT'
 
-		last_ctr_obj.constrain(self.output_xform, 'parent', mo = False)
-		last_ctr_obj.constrain(self.output_xform, 'scale', mo = False)
+    def add_ctrls_data(self):
+        self.add_component_controler(
+            ctr_data={
+                'name': 'root',
+                        'side': 'M',
+                        'color': 'dark_red',
+                        'shape': 'root',
+                        'parent': self.ctrls_grp,
+                        'add_joint': 'add'
+            }
+        )
 
+        self.add_component_controler(
+            ctr_data={
+                'name': 'local',
+                        'side': 'M',
+                        'size': 0.8,
+                        'color': 'dark_yellow',
+                        'shape': 'arrow',
+                        'parent': 'M_root_CTR',
+                        'tweak_ctrls': self.local_tweaks
+            }
+        )
 
-	#This could be better, this is just hard coded and it would require 
-	## constant updating of the code. Needs proper logic
-	def get_template_data(self):
-		""" Override component get_template_data
-		Root will always be at origin
+    def solve(self):
+        """ Will constraint the root jnt to the last ctrl
+        """
+        last_ctr_obj = self.M_local_CTR.last_ctr
 
-		Returns: (dict) template data for root, at origin
-		"""
-		root_template_data = {
-			'M_root_CTR':{
-				'transform':[0,0,0,0,0,0]
-			},
-			'M_local_CTR':{
-				'transform':[0,0,0,0,0,0]
-			}
-		}
-		return root_template_data
+        # Constrain skeleton
+        last_ctr_obj.constrain(self.M_root_JNT, 'parent')
+        last_ctr_obj.constrain(self.M_root_JNT, 'scale')
 
-	def setup_settings_ctr(self):
-		""" Adds attributes to interact with different parts of the rig
-		"""
+        # Create and constrain transforms output
+        self.output_xform = trans.Transform(
+            name=self._output_name,
+            side=self.side,
+            parent=self.output_grp
+        )
 
-		super(Root, self).setup_settings_ctr()
+        last_ctr_obj.constrain(self.output_xform, 'parent', mo=False)
+        last_ctr_obj.constrain(self.output_xform, 'scale', mo=False)
 
-		#Title, the asset name, this provides no functionality 
-		self.settings.attr_add(
-				attr_type='header',
-				header_val=self.asset_name.upper(),
-			)
+    # This could be better, this is just hard coded and it would require
+    # constant updating of the code. Needs proper logic
+    def get_template_data(self):
+        """ Override component get_template_data
+        Root will always be at origin
 
-		#Vis toggles for main rig groups
-		for grp_name in g_data.rig_base_groups:
-			attr = '%sVis' % grp_name
-			dv = 1 if grp_name in ['geo', 'ctrls'] else 0
-			self.settings.attr_add(
-				attr,
-				'bool',
-				default_value=dv,
-				hidden=False,
-				keyable=False
-			)
-		
-		#Toggle for selecting the geo
-		self.settings.attr_add(
-				'geoSelect',
-				'bool',
-				default_value=0,
-				hidden=False,
-				keyable=False
-			)
+        Returns: (dict) template data for root, at origin
+        """
+        root_template_data = {
+            'M_root_CTR': {
+                'transform': [0, 0, 0, 0, 0, 0]
+            },
+            'M_local_CTR': {
+                'transform': [0, 0, 0, 0, 0, 0]
+            }
+        }
+        return root_template_data
+
+    def setup_settings_ctr(self):
+        """ Adds attributes to interact with different parts of the rig
+        """
+
+        super(Root, self).setup_settings_ctr()
+
+        # Title, the asset name, this provides no functionality
+        self.settings.attr_add(
+            attr_type='header',
+            header_val=self.asset_name.upper(),
+        )
+
+        # Vis toggles for main rig groups
+        for grp_name in g_data.rig_base_groups:
+            attr = '%sVis' % grp_name
+            dv = 1 if grp_name in ['geo', 'ctrls'] else 0
+            self.settings.attr_add(
+                attr,
+                'bool',
+                default_value=dv,
+                hidden=False,
+                keyable=False
+            )
+
+        # Toggle for selecting the geo
+        self.settings.attr_add(
+            'geoSelect',
+            'bool',
+            default_value=0,
+            hidden=False,
+            keyable=False
+        )

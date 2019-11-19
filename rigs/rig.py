@@ -44,9 +44,6 @@ class Rig(object):
             }
         )
 
-        # NOTE: dependency_graph removed until better implementation found :(
-        # self.dependency_graph = None
-
     def add_component(self, component_type, common_args, component_args={}):
         """ Intizializes and stores component object in the rig.
         This will not configure the component, just creates the instance

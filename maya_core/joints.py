@@ -1,4 +1,3 @@
-import pymel.core as pm
 import maya.cmds as cmds
 
 from CARF.data import global_data as g_data
@@ -17,7 +16,7 @@ class Joint(trans.Transform):
 
         super(Joint, self).__init__(node_type='joint', name=name, **Kwargs)
 
-        pm.makeIdentity(self.pm_node, apply=1)
-        pm.joint(self.pm_node, edit=True, orientJoint='xyz',
-                 secondaryAxisOrient='xup', children=False,
-                 zeroScaleOrient=True)
+        cmds.makeIdentity(self.pm_node, apply=1)
+        cmds.joint(self.pm_node, edit=True, orientJoint='xyz',
+                   secondaryAxisOrient='xup', children=False,
+                   zeroScaleOrient=True)
