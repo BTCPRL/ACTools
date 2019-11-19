@@ -47,6 +47,7 @@ class Session(object):
         # Empty attributes for clarity of mind
         self.project_name = None
         self.project_path = None
+		self.project_assets = []
         self.project_set = False
 
         # Asset related attributes
@@ -61,7 +62,8 @@ class Session(object):
             self.set_asset(asset_name, asset_type, rig_type)
 
     def set_project(self, project_name):
-
+		""" Populates project attributes with values from the given project
+		"""
         if not project_name in __existing_projects__:
             raise Exception(
                 '{} is not an existing project: unable to set data.\n'
@@ -83,20 +85,16 @@ class Session(object):
 
         self.project_set = True
 
-    def create_set_project(self, project_name):
-        self.create_project(project_name)
-        self.set_project(project_name)
-
     def create_project(self, project_name):
         """ Creates the folder structure for a new project
         Args:
                 project_name (str) : Name to be used for the project.
         """
-
         project_path = os.path.join(g_data.productions_root, project_name)
         if os.path.isdir(project_path):
             print '##Warning: %s already exists as a project,'\
                 ' no folders created' % project_name
+			return False
         else:
             check_create_folder(project_path)
 
@@ -253,13 +251,19 @@ class Session(object):
         __assets_backups__ folder
 
         It saves each new backup with a bigger increment suffix. 
-        TODO: implement the following... 
         if the amount of backups is the same as the maximum number of backups 
-        specified in global_data, delete the oldest
+        specified in global_data, it deletes the oldest.
         """
         # Look for the next backup increment and use it as the directory name
-        next_backup = len(os.listdir(self.user_backups_path)) + 1
-        backup_name = '_'.join([self.asset_name, str(next_backup).zfill(3)])
+		existing_backups = os.listdir(self.user_backups_path) 
+		
+		# If too many backups, delete the oldest
+		if next_backup > g_data._max_user_backups_:
+			os.remove(min(existing_backups))
+        
+        # Get backup names
+		next_backup = len(existing_backups) + 1
+		backup_name = '_'.join([self.asset_name, str(next_backup).zfill(3)])
         backup_path = os.path.join(self.user_backups_path, backup_name)
 
         # Create the backup
