@@ -6,6 +6,7 @@ Global variables for CARF
 productions_root = 'D:/Productions/Projects'
 users_root = 'D:/Productions/Users'
 ctrls_shapes_file = 'D:/Dev/CARF/data/controls_shape.json'
+_max_user_backups_ = 20
 
 # Builder
 # TODO:  better define stages, and when will these be used
