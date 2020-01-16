@@ -31,9 +31,9 @@ class Node(object):
         'nearestPointOnCurve': ['_NPC', 'nearestPointOnCurve'],
         'pointOnCurveInfo': ['_POC', 'pointOnCurveInfo'],
         # Dag nodes, they get the suffix from name
-        'transform': [None, 'transform'],
-        'control': [None, 'transform'],  # Used by controls module
-        'joint': [None, 'joint'],
+        'transform': ['', 'transform'],
+        'control': ['', 'transform'],  # Used by controls module
+        'joint': ['', 'joint'],
     }
     # Auto detect nodes
     _auto_detect_ = {
@@ -55,12 +55,12 @@ class Node(object):
         name (str): Full name of node, it should include side prefix
         """
         if len(name.split('_')) < 2:
-            raise Exception('Node name should include a side prefix')
+            raise ValueError('Node name should include a side prefix')
 
         prefix = name.split('_')[0]
 
         if prefix not in g_data.positions_prefifx:
-            raise Exception('{} has an invalid side prefix'.format(name))
+            raise ValueError('{} has an invalid side prefix'.format(name))
 
         self._full_name = name
 
@@ -110,16 +110,17 @@ class Node(object):
 
         if cmds.objExists(node_name):
             del(self)
-            raise RuntimeError("{} Already exists. Can't create it again")
-
-        self.name = node_name
+            raise RuntimeError(
+                "{} Already exists. Can't create it again".format(node_name)
+            )
 
         # Create node
-        node = pm.createNode(maya_type, n=self._full_name)
+        node = pm.createNode(maya_type, n=node_name)
 
         if maya_type in Node._auto_detect_:
             attributes._set(node, 'operation', Node._auto_detect_[maya_type])
 
+        self.name = node_name
         self.node = node
 
     def __str__(self):
