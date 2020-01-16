@@ -14,12 +14,24 @@ reload(trans)
 
 
 class Control(trans.Transform):
-    """docstring for Control"""
+    """Control class deals with a collection of maya nodes that represent
+        an animation controller. Usually includes one or multiple groups and 
+        a nurbs curve
+    """
 
-    def __init__(self, name, shape, color=None, size=1, side=g_data.center,
-                 ctr_type='main', tweak_ctrls=0, add_zero=True, add_space=True,
-                 parent=None, position=[0, 0, 0, 0, 0, 0],
-                 match_object=False):
+    def __init__(self, name, shape, color=None, size=1,
+                 ctr_type='main', tweak_ctrls=0, **kwargs):
+        """ Control Creator
+        :Args:
+            name (str): Name of the controller, if 'CTR' suffix is not provided
+                        it will be added
+            shape (str): Shape for the nurbs curve of the controller
+            color (str or int): Color of the nurbs curve (check set_color())
+            size (int): Size of the shape
+            ctr_type(str): Will determine a shift in the controller color
+            tweak_ctrls(int): Number of sub controls to add under the main one
+            **kwargs: Check the Transform class for more options
+        """
 
         # Default attributes
         self.shapes = []
@@ -27,16 +39,15 @@ class Control(trans.Transform):
         self.ctr_type = ctr_type
         self.last_ctr = self
 
-        # CBB remove this? have it NOT allow for preffix in name?
         ctr_name = name
         if not name.split('_')[-1] == '_CTR':
             ctr_name = '%s_CTR' % ctr_name
 
-        super(
-            Control, self).__init__(
-            name=ctr_name, side=side, add_zero=add_zero, add_space=add_space,
-            parent=parent, position=position, node_type='control',
-            match_object=match_object)
+        super(Control, self).__init__(
+            name=ctr_name,
+            node_type='control',
+            **kwargs
+        )
 
         # Template modifiers
         if ctr_type == 'template':
@@ -118,12 +129,12 @@ class Control(trans.Transform):
     def set_color(self, color):
         """Description
         Args:
-                color (str) : if passed as a string, it can be one of the following
-                        options: 'blue', 'red', 'yellow', 'green', 'pink'.
-                        Prefixes available for the options: 'light_' and 'dark_'
-                        Examples: 'dark_red', 'light_green', 'pink'
-                color (int) : if passed as an int, it represents the index value of
-                        the Color attribute in the Drawing override tab for Maya
+            color (str) : if passed as a string, it can be one of the following
+                    options: 'blue', 'red', 'yellow', 'green', 'pink'.
+                    Prefixes available for the options: 'light_' and 'dark_'
+                    Examples: 'dark_red', 'light_green', 'pink'
+            color (int) : if passed as an int, it represents the index value of
+                    the Color attribute in the Drawing override tab for Maya
         """
 
         if type(color) is int:

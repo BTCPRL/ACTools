@@ -1,27 +1,29 @@
 import maya.cmds as cmds
-
 from CARF.maya_core import nodes
-reload(nodes)
 
 
 class Transform(nodes.Node):
-    """docstring for Transform"""
+    """
+    Transforms class. 
+    Deals with maya transforms, commonly known as groups. It includes methods
+    that allow for easy manipulation of the created node, like translation,
+    rotation, etc..
+    """
 
-    def __init__(self, name, side=None, add_zero=False, add_space=False,
-                 parent=None, position=[0, 0, 0, 0, 0, 0],
-                 match_object=False, driver=None, node_type='transform'):
+    def __init__(self, name, node_type='transform', add_zero=False,
+                 add_space=False, parent=None, position=[0, 0, 0, 0, 0, 0],
+                 match_object=False):
 
         # Args validation
         suffix = name.split('_')[-1]
         if len(name.split('_')) < 2 or suffix.islower():
-            raise Exception('Transfroms need a suffix in the name.'
-                            ' Suffix should be all upper case')
+            raise ValueError('Transfroms need a suffix in the name.'
+                             ' Suffix should be all upper case')
         if 3 < len(position) > 6:
-            raise Exception('Position has to be of the form [tx,ty,tz] or '
-                            '[tx,ty,tz,rx,ry,rz]')
+            raise ValueError('Position has to be of the form [tx,ty,tz] or '
+                             '[tx,ty,tz,rx,ry,rz]')
 
-        super(Transform, self).__init__(node_type=node_type, name=name,
-                                        side=side)
+        super(Transform, self).__init__(name=name, node_type=node_type)
 
         # Empty attributes for clarity of mind
         self.top_node = None
@@ -31,7 +33,7 @@ class Transform(nodes.Node):
 
         self.constraints = []
 
-        # Set up groups above ctrl
+        # Set up groups above transform
         self.top_node = self
         if add_zero:
             self.zero = Transform(
@@ -52,38 +54,50 @@ class Transform(nodes.Node):
             self.top_node.set_parent(parent)
 
         # set node's transforms
-        self.top_node.set_position(position[:3], relative=True)
+        self.top_node.set_position(position[:3])
         if len(position) > 3:
-            self.top_node.set_rotation(position[3:], relative=True)
+            self.top_node.set_rotation(position[3:])
 
         # Match object overrides any given transforms
         if match_object:
             cmds.delete(cmds.parentConstraint(match_object, self.top_node))
 
-        if driver:
-            self.top_node.constrain_to(driver, 'parent')
+    def set_parent(self, parent, ignore_top_node=True):
+        """ Parent's the transform under the given parent
+        :args:
+            parent (str): Name of the node to move this transform under
+            ignore_top_node (bool): Parent the top_node or not
+        """
+        if ignore_top_node:
+            cmds.parent(self, parent)
+            self.top_node = self  # moved outside of existing hierarchy
+        else:
+            cmds.parent(self.top_node, parent)
 
-    def set_parent(self, parent):
-        if not parent:
-            raise Exception('%s is not a valid parent' % parent)
         self.parent = parent
-        self.pm_node.setParent(parent)
 
-    def set_top_node(self, node):
-        temp = self.top_node
-        cmds.parent(temp, node)
-        self.top_node = node
+    def set_top_node(self, new_top):
+        """ Adds the given node as the top_node for this transform. 
+        :args:
+        node (str): Name of the new top node
+        """
+        # If a parent is assigned, respect it
         if self.parent:
-            self.top_node.set_parent(self.parent)
+            cmds.parent(new_top, self.parent)
+
+        # Moving the existing top node under the new one
+        cmds.parent(self.top_node, new_top)
+
+        self.top_node = new_top  # updating values
 
     def add_top_levels(self, top_levels):
         """Creates groups above the current top node.
         This groups will have numerical naming if the input is a number or they
         will match the names given if the input is a list of string
-        args:
-                top_levels (int or [str]): 
-                        if int: Number of groups to add
-                        if [str]: Name of groups to add
+        :args:
+            top_levels (int or [str]): 
+                    if int: Number of groups to add
+                    if [str]: Name of groups to add
         """
         # Validation
         if type(top_levels) is int:
@@ -108,7 +122,7 @@ class Transform(nodes.Node):
         """Constrains target or targets to current transform
         For more information read _constrain Documentation
         Returns:
-                list : new created constraint(s)
+                list: new created constraint(s)
         """
         target_list = target if type(target) is list else [target]
         constraints_list = []
@@ -131,7 +145,7 @@ class Transform(nodes.Node):
         """Constrains self to given target or targets
         For more information read _constrain Documentation
         Returns:
-                list : new created constraint(s)
+                list: new created constraint(s)
         """
         target_list = target if type(target) is list else [target]
         constraints_list = []
@@ -152,77 +166,77 @@ class Transform(nodes.Node):
     def get_transform(self, relative=False):
         '''Description
         Args:
-                relative (boolean) : True object space values
+            relative (boolean): True object space values
         Returns:
-                list : [tX,tY,tZ,rX,rY,rZ] translation and rotation values
+            list: [tX,tY,tZ,rX,rY,rZ] translation and rotation values
         '''
         return self.get_position(relative) + self.get_rotation(relative)
 
     def get_position(self, relative=False):
         '''Returns wolrd space or local space translation of object
         Args:
-                relative (boolean) : True if looking for translation in object space
+            relative (boolean): True if looking for translation in object space
         Returns:
-                list: [X,Y,Z] translation values for object in wolrd/local space
+            list: [X,Y,Z] translation values for object in wolrd/local space
         '''
         space = 'object' if relative else 'world'
-        return list(self.pm_node.getTranslation(space))
+        return list(self.node.getTranslation(space))
 
     def get_rotation(self, relative=False):
         '''Returns wolrd space or local space rotation of object
         Args:
-                relative (boolean) : True if looking for rotation in object space
+            relative (boolean): True if looking for rotation in object space
         Returns:
-                list: [X,Y,Z] rotation values for object in wolrd/local space
+            list: [X,Y,Z] rotation values for object in wolrd/local space
         '''
         space = 'object' if relative else 'world'
-        return list(self.pm_node.getRotation(space))
+        return list(self.node.getRotation(space))
 
     def get_scale(self, scale):
         '''Gets object's scale
         Returns:
-                list : [X,Y,Z] values for object's scale
+            list: [X,Y,Z] values for object's scale
         '''
-        self.pm_node.getScale(scale)
+        self.node.getScale(scale)
 
     def set_position(self, position, relative=False):
         ''' Sets object's position in space (either wolrd or local)
         Args:
-                position (list) : 
-                        space coordinates in which to move the object [tX,tY,tZ] 
-                relative (boolean): True if position is in object Space
+        position (list): 
+                space coordinates in which to move the object [tX,tY,tZ] 
+        relative (boolean): True if position is in object Space
         '''
         space = 'object' if relative else 'world'
-        self.pm_node.setTranslation(position, space)
+        self.node.setTranslation(position, space)
 
     def set_rotation(self, rotation, relative=False):
         ''' Sets object's rotation in space (either wolrd or local)
         Args:
-                rotation (list) : 
-                        space coordinates in which to move the object [tX,tY,tZ] 
-                relative (boolean): True if rotation is in object Space
+            rotation (list): 
+                    space coordinates in which to move the object [tX,tY,tZ] 
+            relative (boolean): True if rotation is in object Space
         '''
         space = 'object' if relative else 'world'
-        self.pm_node.setRotation(rotation, space)
+        self.node.setRotation(rotation, space)
 
     def set_scale(self, scale):
         ''' Sets object's scale
         Args:
-                scale (list) : [X,Y,Z] values for object's scale
+                scale (list): [X,Y,Z] values for object's scale
         '''
-        self.pm_node.setScale(scale)
+        self.node.setScale(scale)
 
 
 def _create_maya_constrain(driver, driven, constraint_type, mo=1, **kwargs):
     """ Constrains driven to driver. Using each transform's pmNode
     Args:
-            constraint_type (str) : Type of constraint to be created. 
+            constraint_type (str): Type of constraint to be created. 
                     Supported values for constraint_type:
                             ['parent','point','orient','scale', 'aim']
-            driver (transform) : Maya's group that will drive the action
-            driven (transform) : Maya's group that will follow the driver's action
-            mo (bool) : keep offset boolean
-            kwargs : Other arguments needed for each type of coinstrain
+            driver (transform): Maya's group that will drive the action
+            driven (transform): Maya's group that will follow the driver's action
+            mo (bool): keep offset boolean
+            kwargs: Other arguments needed for each type of coinstrain
     Returns:
             (pymel constraint): Pymel's contraint object
     """
