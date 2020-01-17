@@ -1,4 +1,3 @@
-import pymel.core as pm
 import maya.cmds as cmds
 
 """
@@ -8,7 +7,7 @@ All the methods are meant to only be accesed from the Nodes class, even though
 they are accesible from any other class as well.
 
 Common arguments for all functions:
-	node (PyNode) : source node
+	node (str) : source node
 	attr_name (str) : attribute belonging to node
 """
 
@@ -84,11 +83,11 @@ def _add(node, attr_name='', attr_type='slider', default_value=0,
 
     # Check for forcing a non keyable attr to show up, 'cuz maya
     if not (keyable or hidden):  # DeMorgan!!!
-        return_val = node.addAttr(attr_name, at=maya_type, **args)
-        node.setAttr(attr_name, cb=True)
+        return_val = cmds.addAttr(node, ln=attr_name, at=maya_type, **args)
+        cmds.setAttr('{}.{}'.format(node, attr_name), cb=True)
         return return_val
     else:
-        return node.addAttr(attr_name, at=maya_type, **args)
+        return cmds.addAttr(node, ln=attr_name, at=maya_type, **args)
 
 
 def _set(node, attr_name, value=None, **Kwargs):
@@ -97,9 +96,9 @@ def _set(node, attr_name, value=None, **Kwargs):
             value (attribute specific) : value to be assigned
     """
     if value != None:
-        return node.setAttr(attr_name, value, **Kwargs)
+        return cmds.setAttr('{}.{}'.format(node, attr_name), value, **Kwargs)
     else:
-        return node.setAttr(attr_name, **Kwargs)
+        return cmds.setAttr('{}.{}'.format(node, attr_name), **Kwargs)
 
 
 def _get(node, attr_name, **Kwargs):
@@ -107,7 +106,7 @@ def _get(node, attr_name, **Kwargs):
     Return :
             (attribute specific) : current value of the given attribute
     """
-    return node.getAttr(attr_name, **Kwargs)
+    return cmds.getAttr('{}.{}'.format(node, attr_name), **Kwargs)
 
 
 def _lock(node, attr_name, hide=True, **Kwargs):
@@ -119,10 +118,13 @@ def _lock(node, attr_name, hide=True, **Kwargs):
     for attr in attr_name:
         if attr in ['s', 'r', 't']:
             for ax in ['x', 'y', 'z']:
-                node.setAttr('{}{}'.format(attr, ax), lock=True,
+                cmds.setAttr('{}.{}{}'.format(node, attr, ax), lock=True,
                              keyable=False, cb=not hide)
         else:
-            node.setAttr(attr, keyable=False, lock=True, cb=not hide)
+            cmds.setAttr(
+                '{}.{}'.format(node, attr),
+                keyable=False, lock=True, cb=not hide
+            )
 
 
 def _unlock(node, attr_name, show=True, **Kwargs):
@@ -134,15 +136,16 @@ def _unlock(node, attr_name, show=True, **Kwargs):
     for attr in attr_name:
         if attr in ['s', 'r', 't']:
             for ax in ['x', 'y', 'z']:
-                node.setAttr('{}{}'.format(attr, ax), lock=False,
+                cmds.setAttr('{}.{}{}'.format(node, attr, ax), lock=False,
                              keyable=True, cb=show)
         else:
-            node.setAttr(attr, keyable=True, lock=False, cb=show)
+            cmds.setAttr(
+                '{}.{}'.format(node, attr),
+                keyable=True, lock=False, cb=show
+            )
 
-# TODO should this be done in nodes.py?
 
-
-def _link(node, attr_name, target_node, f=False):
+def _link(node, attr_name, target_node, force=False):
     """ Connects the same attribute between two ndoes
     Assumes the same attribute is present in both nodes
     Args :  node : node that will drive the attr's value
@@ -155,43 +158,47 @@ def _link(node, attr_name, target_node, f=False):
         if attr in ['s', 'r', 't']:
             for ax in ['x', 'y', 'z']:
                 attr_link = '{}{}'.format(attr, ax)
-                _connect(node, attr_link, target_node, attr_link, f=f)
+                _connect(node, attr_link, target_node, attr_link, force=f)
         else:
-            _connect(node, attr, target_node, attr, f=f)
+            _connect(node, attr, target_node, attr, force=f)
 
 
-def _connect(node, attr_name, target_node, target_attr, f=False):
+def _connect(node, attr_name, target_node, target_attr, force=False):
     """Makes a direct connection from attr_name to target_attr
     Args : 
 
     """
-    node.connectAttr(attr_name, '{}.{}'.format(target_node, target_attr), f=f)
+    cmds.connectAttr(
+        '{}.{}'.format(node, attr_name),
+        '{}.{}'.format(target_node, target_attr),
+        force=f
+    )
 
 
-def _connectReverse(node, attr_name, target_node, target_attr, f=False):
+def _connectReverse(node, attr_name, target_node, target_attr, force=False):
     """ Makes a reverse connection between attributes
     Works like _connect but it runs the source attribute through a reverse node
     """
     rev_name = '{}_{}_REV'.format(node, attr_name)
-    if not pm.objExists(rev_name):
-        rev = pm.createNode('reverse', name=rev_name)
+    if not cmds.objExists(rev_name):
+        rev = cmds.createNode('reverse', name=rev_name)
         _connect(node, attr_name, rev, 'inputX')
         rev_node = rev
     else:
-        rev_node = pm.PyNode(rev_name)
-    _connect(rev_node, 'outputX', target_node, target_attr, f=f)
+        rev_node = rev_name
+    _connect(rev_node, 'outputX', target_node, target_attr, force=f)
 
 
-def _connectNegative(node, attr_name, target_node, target_attr, f=False):
+def _connectNegative(node, attr_name, target_node, target_attr, force=False):
     """ Connect the negative value of an attribute into another
     Works like _connect but multiplies the attr_name value by -1
     """
     mul_name = '{}_{}_neg'.format(node, attr)
-    if not pm.objExists(mul_name):
-        mul_node = pm.createNode('multiplyDivide', name=mul_name)
-        mul_node.setAttr('input2X', -1)
+    if not cmds.objExists(mul_name):
+        mul_node = cmds.createNode('multiplyDivide', name=mul_name)
+        cmds.setAttr('{}.input2X'.format(mul_node), -1)
         _connect(node, attr_name, mul_node, 'input1X')
     else:
-        mul_node = pm.PyNode(mul_name)
+        mul_node = mul_name
 
-    _connect(mul_node, 'outputX', target_node, target_attr, f=f)
+    _connect(mul_node, 'outputX', target_node, target_attr, force=f)
