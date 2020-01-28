@@ -5,9 +5,6 @@
 import os
 import shutil
 
-# Module imports
-from CARF.maya_core import maya_files
-
 # Global data import
 from CARF.data import global_data as g_data
 
@@ -300,7 +297,7 @@ class Session(object):
         for folder_path in [rig_path, version_path]:
             file_path = os.path.join(
                 folder_path, '%s_rig.ma' % self.asset_name)
-            maya_files.save_file_as(file_path)
+            cmds.file(rename=file_path, save=True)
 
     def open_build(self):
         open_in_os(self.paths['build'])

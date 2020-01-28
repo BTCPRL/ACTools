@@ -2,14 +2,13 @@
 import json
 
 # Maya imports
-import pymel.core as pm
 import maya.cmds as cmds
-
+import pymel.core as pm
 # Global data import
 from CARF.data import global_data as g_data
-
 # Modules improt
 from CARF.maya_core import transforms as trans
+
 reload(trans)
 
 
@@ -112,16 +111,16 @@ class Control(trans.Transform):
             # curve_points = [p*self.size for p in point_data]
 
             # Create curve in maya
-            temp_curve = pm.curve(name=self.full_name, degree=curve_degree,
-                                  point=curve_points)
+            temp_curve = cmds.curve(name=self.full_name, degree=curve_degree,
+                                    point=curve_points)
             if curve_form == 2:  # 2 is closed
-                pm.closeCurve(temp_curve, preserveShape=False,
-                              replaceOriginal=True)
+                cmds.closeCurve(temp_curve, preserveShape=False,
+                                replaceOriginal=True)
 
             curve_shape = temp_curve.getShape()
             # Parent curve shape under control and delete temp transform
-            pm.parent(curve_shape, self.pm_node, r=1, s=1)
-            pm.delete(temp_curve)
+            cmds.parent(curve_shape, self.node, r=1, s=1)
+            cmds.delete(temp_curve)
 
             # Store shape in object attribute
             self.shapes.append(curve_shape)

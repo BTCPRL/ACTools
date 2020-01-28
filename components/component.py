@@ -23,7 +23,7 @@ class Component(object):
         self.side = None
         self.name = None
         self.position = None
-        self.create_settings_ctr = None
+        self.create_settings_ctr = False
         self.settings_proxy = False
 
         # Private attributes

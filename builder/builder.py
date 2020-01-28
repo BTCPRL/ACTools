@@ -1,17 +1,13 @@
 # Python imports
-import os
-import sys
 import imp
 import json
+import os
+import sys
 
 # Maya imports
 import maya.cmds as cmds
-
 # CARF imports
 from CARF.data import global_data as g_data
-
-# from CARF import session
-from CARF.maya_core import maya_files
 from CARF.maya_core import controls
 
 
@@ -69,7 +65,10 @@ class Builder(object):
         """Imports the asset geo to the scene.
         If there's a rig base, it parents the imported geo under GEO_GRP
         """
-        new_nodes = maya_files.import_file(self.session_obj.paths['geo'])
+        new_nodes = cmds.file(
+            self.session_obj.paths['geo'],
+            i=True, returnNewNodes=True
+        )
 
         if self.rig_base:
             cmds.parent(self.session_obj.asset_name, self.rig.geo_grp)
@@ -106,7 +105,7 @@ class Builder(object):
         """
         self.set_stage('template')
 
-        maya_files.new_file()  # New scene
+        cmds.file(newFile=True, force=True)  # New scene
 
         self.initialize_rig()  # Instanciates rig object
 
@@ -173,7 +172,7 @@ class Builder(object):
         """
         self.set_stage('build')
 
-        maya_files.new_file()  # New scene
+        cmds.file(newFile=True, force=True)  # New scene
 
         self.initialize_rig()  # Instanciates rig object
 
