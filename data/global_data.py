@@ -1,34 +1,39 @@
 """
-Global variables for CARF
+Config data for CARF
 """
+import os
 
-# System
-productions_root = 'D:/Productions/Projects'
-users_root = 'D:/Productions/Users'
-ctrls_shapes_file = 'D:/Dev/CARF/data/controls_shape.json'
+""" Paths """
+drive = 'D:'
+productions_root = '{}/Productions/Projects'.format(drive)
+users_root = '{}/Productions/Users'.format(drive)
+carf_root = '{}/Dev/CARF'.format(drive)
+ctrls_shapes_file = '{}/data/controls_shape.json'.format(carf_root)
+
+""" system """
 _max_user_backups_ = 20
 
-# Builder
-# TODO:  better define stages, and when will these be used
-builder_stages = ['init', 'template', 'build', 'finalize']
 
+""" Builder """
 # Sides for prefixes
-left = 'L'
-right = 'R'
-center = 'M'
+left = 'L_'
+right = 'R_'
+center = 'M_'
 
 # Sides collection for loops
 sides = [left, right]
 positions_prefifx = [left, center, right]
 
 # Validation lists
-# TODO Get this from directory?
-supported_rig_types = ['prop', 'layout', 'character', 'set']
+rigtypes_path = '{}/rigs'.format(carf_root)
+rig_dir_content = os.listdir(rigtypes_path)
+rig_dir_content.remove('__init__.py')
+supported_rig_types = [x.split('.')[0] for x in rig_dir_content]
 
 # Rig groups
 rig_base_groups = ['ctrls', 'geo', 'skeleton', 'setup']
 
-# Controls
+""" Controls """
 # Colors for controllers
 # Dictionary Made up of aribitray description-index pairs
 colors_dict = {
@@ -54,14 +59,14 @@ sides_color = {
     right: 13,
     center: 22
 }
-template_sides_color = {
+secondary_sides_color = {
     left: 15,
     right: 12,
     center: 21
 }
 
 
-# Directories
+""" Directories"""
 # Project folder structure
 # Dictionaries structure: Folder name(key) : another folder dictionary (value)
 # use None as a value for a directory with no sub directories
